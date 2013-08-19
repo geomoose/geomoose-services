@@ -1,1 +1,1 @@
-== This is a test post to the repository.
+This is a test post to the repository.
