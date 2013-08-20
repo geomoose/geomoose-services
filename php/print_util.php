@@ -46,6 +46,7 @@ function getImage($url,$debug=false) {
 	$outfile = fopen($dlFileName, "w");
 	curl_setopt($ch, CURLOPT_FILE, $outfile);
 	curl_setopt($ch, CURLOPT_HEADER, 0);
+	curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); #Access HTTPS
 	curl_exec($ch);
 
 	$mimetype = curl_getinfo($ch,CURLINFO_CONTENT_TYPE);
