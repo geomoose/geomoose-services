@@ -223,10 +223,10 @@ function get_request_icase($param_name) {
 
 	$value = NULL;
 	if(isset($_REQUEST[$lower_case])) {
-		$value = $_REQUEST[$lower_case];
+		$value = urldecode($_REQUEST[$lower_case]);
 	}
 	if(!isset($value)) {
-		$value = $_REQUEST[$upper_case];
+		$value = urldecode($_REQUEST[$upper_case]);
 	}
 	return $value;
 }

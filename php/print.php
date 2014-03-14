@@ -56,16 +56,16 @@ if(!isset($units)) {
 }
 
 $template_path = '../../conf/print/';
-$template = $_REQUEST['template'];
+$template = urldecode($_REQUEST['template']);
 # some sanitization...
 $template = preg_replace('/\/\\\./', '', $template).'.xml';
 
 $template_info = new DOMDocument();
 $template_info->load($template_path.$template);
 
-$quality = (float)$_REQUEST['quality'];
+$quality = (float)(urldecode($_REQUEST['quality']));
 
-$preserveScale = $_REQUEST['scale'];
+$preserveScale = urldecode($_REQUEST['scale']);
 
 $print_info = json_decode(urldecode($_REQUEST['layers']), true);
 
@@ -75,10 +75,10 @@ if($quality > 3) { $quality = 3; }
 
 if( $mode == "feature_report") {
 
-	$mapfile = getMapfile($mapbook, $_REQUEST['src']);
+	$mapfile = getMapfile($mapbook, urldecode($_REQUEST['src']));
 	$mapObj = ms_newMapObj($CONFIGURATION['root'].$mapfile);
 
-	$path = explode('/', $_REQUEST['src']);
+	$path = explode('/', urldecode($_REQUEST['src']));
 	$layer = false;
 	if($path[1] == 'all') {
 		$layer = $mapObj->getLayer(0); # Don't use all...
@@ -89,7 +89,7 @@ if( $mode == "feature_report") {
 	$query_info = $template_info->getElementsByTagName('query')->item(0);
 	$qItem = $query_info->getAttribute('item');
 	$layer->set('filteritem', $qItem);
-	$layer->setFilter(str_replace('%qstring%', $_REQUEST[$qItem], $query_info->getAttribute('string')));
+	$layer->setFilter(str_replace('%qstring%', urldecode($_REQUEST[$qItem]), $query_info->getAttribute('string')));
 
 	$shape = false;
 	$layer->set('template', 'dummy.html');

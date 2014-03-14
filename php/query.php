@@ -426,7 +426,7 @@ if($mode == 'search') {
 		$partial_params = array();
 		foreach($_REQUEST as $p => $v) {
 			if($p != 'mode') {
-				array_push($partial_params, sprintf("'%s' : '%s'", $p, $v));
+				array_push($partial_params, sprintf("'%s' : '%s'", $p, urldecode($v)));
 			}
 		}
 		$partial_params[] = "'TRANSPARENT' : 'true'";

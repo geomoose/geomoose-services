@@ -25,8 +25,8 @@ THE SOFTWARE.
  * Code contributed by Brian Fischer @ Houston Engineering
  */
 
-$address = $_REQUEST['address'];
-$googlekey = $_REQUEST['googlekey'];
+$address = urldecode($_REQUEST['address']);
+$googlekey = urldecode($_REQUEST['googlekey']);
 
 $streetaddress = $address;
 
