@@ -25,7 +25,7 @@ THE SOFTWARE.
 #  * 101 Main St, Anoka, MN
 #  * 25 W 4th st, saint paul, mni 55101
 
-$address = $_REQUEST['address'];
+$address = urldecode($_REQUEST['address']);
 $error_msg = "Could not find any matching geocoder results.";
 
 header('Content-Type: application/xml');

@@ -25,7 +25,7 @@ THE SOFTWARE.
  * Code contributed by Brian Fischer @ Houston Engineering
  */
 
-$xy = explode(",",$_REQUEST['xy']);
+$xy = explode(",",urldecode($_REQUEST['xy']));
 
 //header( 'Location: http://maps.live.com/default.aspx?v=2&FORM=LMLTCP&cp=' . $xy[0] . '~' . $xy[1] . '&style=b&');
 
