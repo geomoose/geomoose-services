@@ -47,11 +47,11 @@ $tempDirectory = $CONFIGURATION['temp'];
 # "selection_buffer" is a buffer the shapes selected by shape + shape_buffer
 $shape_buffer = 0;
 if(array_key_exists('shape_buffer', $_REQUEST) and isset($_REQUEST['shape_buffer'])) {
-	$shape_buffer = $_REQUEST['shape_buffer'];
+	$shape_buffer = urldecode($_REQUEST['shape_buffer']);
 }
 $selection_buffer = 0;
 if(array_key_exists('selection_buffer', $_REQUEST) and isset($_REQUEST['selection_buffer'])) {
-	$selection_buffer = $_REQUEST['selection_buffer'];
+	$selection_buffer = urldecode($_REQUEST['selection_buffer']);
 }
 
 # Get the Query Shape
@@ -64,9 +64,9 @@ $LATLONG_PROJ = ms_newprojectionobj('epsg:4326');
 $drawnShape = reprojectWkt($shape_wkt, ms_newprojectionobj($projection), $LATLONG_PROJ);
 
 # This is the layer where shapes are selected from
-$selectLayer = $_REQUEST['select_layer'];
+$selectLayer = urldecode($_REQUEST['select_layer']);
 # This is the layer from where feature information is queried
-$queryLayer = $_REQUEST['query_layer'];
+$queryLayer = urldecode($_REQUEST['query_layer']);
 
 
 

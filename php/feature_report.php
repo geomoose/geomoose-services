@@ -36,11 +36,11 @@ require('fpdf/fpdf.php');
 require('fpdi/fpdi.php');
 
 
-$path = explode('/', $_REQUEST['src']);
+$path = explode('/', urldecode($_REQUEST['src']));
 
 # Load the mapbook
 $mapbook = getMapbook();
-$mapfile = getMapfile($mapbook, $_REQUEST['src']);
+$mapfile = getMapfile($mapbook, urldecode($_REQUEST['src']));
 
 $mapObj = ms_newMapObj($CONFIGURATION['root'].$mapfile);
 $layer = false;
@@ -52,7 +52,7 @@ if($path[1] == 'all') {
 
 if($layer == false) {
 	header("Content-type: text/plain");
-	print 'Could not open src: '.$_REQUEST['src'];
+	print 'Could not open src: '.urldecode($_REQUEST['src']);
 #	exit(0);
 }
 
@@ -64,7 +64,7 @@ $template_info->load('../../conf/feature_report/'.$layer->getMetadata('feature_r
 $query_info = $template_info->getElementsByTagName('query')->item(0);
 $qItem = $query_info->getAttribute('item');
 $layer->set('filteritem', $qItem);
-$layer->setFilter(str_replace('%qstring%', $_REQUEST[$qItem], $query_info->getAttribute('string')));
+$layer->setFilter(str_replace('%qstring%', urldecode($_REQUEST[$qItem]), $query_info->getAttribute('string')));
 
 $shape = false;
 $layer->set('template', 'dummy.html');
