@@ -1,5 +1,4 @@
 <?php
-SCRATCH
 /*Copyright (c) 2009, Dan "Ducky" Little & GeoMOOSE.org
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
