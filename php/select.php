@@ -154,8 +154,8 @@ if(isset($queryLayer) and $queryLayer != null and $queryLayer != '') {
 		while($shape = $layer->nextShape()) {
 			# okay, now we normalize these shapes to 4326, I need something normal
 			# just for a second.
-			# add it to our querying stack for later.
-			if($layer_query_shape->intersects($shape) == MS_TRUE or $shape->containsShape($layer_query_shape) == MS_TRUE) {
+			# add it to our querying stack for later.ww
+			if($layer_query_shape->intersects($shape) or $shape->containsShape($layer_query_shape) == MS_TRUE or $shape->touches($layer_query_shape) == MS_TRUE or $shape->overlaps($layer_query_shape) == MS_TRUE) {
 				if($layer_projection != NULL) {
 					# convert the shape to wgs84 for internal use.
 					$shape->project($layer_projection, $LATLONG_PROJ);
@@ -175,6 +175,7 @@ if(isset($queryLayer) and $queryLayer != null and $queryLayer != '') {
 	}
 }
 
+
 # Build a massive shape
 $queryShape = array_pop($queryShapes); # this should be the initial selection area.
 foreach($queryShapes as $shape) {
@@ -186,15 +187,8 @@ $selectMap = getMapfile($mapbook, $selectLayer);
 $map = ms_newMapObj($CONFIGURATION['root'].$selectMap);
 $layersToQuery = array();
 
-$layer = array_reverse(explode('/', $selectLayer));
-$layer = $layer[0];
-if($layer == 'all') {
-	for($i = 0; $i < $map->numlayers; $i++) {
-		array_push($layersToQuery, $map->getLayer($i));
-	}
-} else {
-	array_push($layersToQuery, $map->getLayerByName($layer));
-}
+$layerPath = array_reverse(explode('/', $selectLayer));
+$layerName = $layerPath[0];
 
 $foundShapes = array();
 $attributes = false;
@@ -204,6 +198,9 @@ for($i = 0; $i < $map->numlayers; $i++) {
 	$layer = $map->getLayer($i);
 	$layer->set('status', MS_OFF);	# Turn off extraneous layers
 	$layer->set('template', ''); # this should prevent layers from being queried.
+	if($layerName == 'all' or $layer->name == $layerName or $layer->group == $layerName) {
+		$layersToQuery[] = $layer;
+	}
 }
 
 $queryShapeWkt = $queryShape->toWkt();
@@ -244,11 +241,12 @@ foreach($layersToQuery as $layer) {
 	if($DEBUG) {
 		error_log('select.php :: q_shape :'.$q_shape->toWkt());
 	}
-	$layer->queryByShape($q_shape);
+	#$layer->queryByShape($q_shape);
+	$layer->queryByRect($q_shape->bounds);
 
 	while($shape = $layer->nextShape()) {
 		# if we have a projection, convert the shape into latlong
-		if($q_shape->intersects($shape) == MS_TRUE or $shape->containsShape($q_shape) == MS_TRUE) {
+		if($shape->intersects($q_shape) == TRUE or $shape->containsShape($q_shape) == MS_TRUE) {
 			if($projection != NULL) {
 				$shape->project($projection, $LATLONG_PROJ);
 			}
