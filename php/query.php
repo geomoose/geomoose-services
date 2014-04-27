@@ -283,7 +283,7 @@ for($i = 0; $i < 255; $i++) {
 		# if a value is not set for subsequent inputs, use the first input
 		# this allows queries to permeate across multiple layers
 		if(isset_icase('value'.$i)) {
-			$value = urldecode(get_request_icase('value'.$i));
+			$value = get_request_icase('value'.$i);
 			$p = new Predicate($layer, get_request_icase('fieldname'.$i), $value, $operator, $comparitor, $blank_okay);
 			$predicates[] = $p;
 		}
@@ -470,7 +470,7 @@ if($mode == 'search') {
 		$partial_params = array();
 		foreach($_REQUEST as $p => $v) {
 			if($p != 'mode') {
-				array_push($partial_params, sprintf("'%s' : '%s'", $p, urldecode($v)));
+				array_push($partial_params, sprintf("'%s' : '%s'", $p, $v));
 			}
 		}
 		$partial_params[] = "'TRANSPARENT' : 'true'";

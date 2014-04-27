@@ -37,13 +37,13 @@ if(!$DEBUG) {
 
 $projection = $CONFIGURATION['projection'];
 if(array_key_exists('projection', $_REQUEST) and isset($_REQUEST['projection'])) {
-	$projection = urldecode($_REQUEST['projection']);
+	$projection = $_REQUEST['projection'];
 }
 
-$shape = urldecode($_REQUEST['shape']);
+$shape = $_REQUEST['shape'];
 
-$visibleLayers = urldecode($_REQUEST['layers']);
-$hiddenLayers = urldecode($_REQUEST['hidden_layers']);
+$visibleLayers = $_REQUEST['layers'];
+$hiddenLayers = $_REQUEST['hidden_layers'];
 
 $layersList = explode(':', $visibleLayers);
 $layersList = array_merge($layersList, explode(':', $hiddenLayers));
