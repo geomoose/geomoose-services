@@ -71,9 +71,8 @@ parseLocalConf();
 
 # Enable encoding settings
 mb_internal_encoding($CONFIGURATION['input-encoding']);
+mb_http_input($CONFIGURATION['input-encoding']);
 mb_http_output($CONFIGURATION['output-encoding']);
-ob_start('mb_output_handler');
-
 
 function getMapbook() {
 	global $CONFIGURATION;
