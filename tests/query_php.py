@@ -40,7 +40,7 @@ class QueryTest(ParcelTest):
 		}
 		self.check_parcels(query_test, expected_parcels)
 	
-	def test_in_operator(self):
+	def test_in_comparitor(self):
 		"""
 		Test an 'in' search 
 		"""
@@ -63,6 +63,51 @@ class QueryTest(ParcelTest):
 			"value0" : ';'.join(search_parcels)
 		}
 		self.check_parcels(in_test, expected_parcels)
+
+	def test_in_with_names(self):
+		"""
+		Test an 'in' search using names instead of PINs
+		"""
+		expected_parcels = ['160010001001', '130270001077']
+		names = ['Kevin Smith', 'Theo Allen']
+		in_test = {
+			"comparitor0" : "in",
+			"fieldname0" : "OWNER_NAME",
+			"value0" : ';'.join(names)
+		}
+		self.check_parcels(in_test, expected_parcels)
+		
+
+	def test_uppercase_in(self):
+		"""
+		Test an 'in-ucase' search using PINs and CITY (ticket #35) 
+		"""
+		# The problem with this test is that there are far too
+		# many pins when we use 'CITY' as a search field
+		# and the names are case sensitive. So this also requires
+		# the 'and' operator to work.
+		expected_parcels = ['160010001001', '130270001077']
+		cities = ['EUREKA TWP', 'GREENVALE TWP']
+		ucase_test = {
+			"comparitor0" : "in",
+			"value0" : ';'.join(expected_parcels),
+			"operator1" : "and",
+			"fieldname1" : "CITY",
+			"comparitor1" : "in",
+			"value1" : ';'.join(cities)
+		}
+
+		# should return as normal.
+		self.check_parcels(ucase_test, expected_parcels)
+		# under case our cities
+		ucase_test['value1']  = ucase_test['value1'].lower()
+		# we should get no parcels
+		self.check_parcels(ucase_test, [])
+
+		# now we should get our parcels back.
+		ucase_test['comparitor1'] = 'in-ucase'
+		self.check_parcels(ucase_test, expected_parcels)
+
 
 
 
