@@ -58,6 +58,16 @@ class ParcelTest(GeoMOOSETest):
 		# expected IDs 
 		for expected_id in expectedParcels:
 			self.assertTrue(expected_id in parcel_ids, 'Parcel ID not found in results: '+expected_id)
+
+		# now test that we didn't get *more* parcels
+		# than we were looking to find.
+		expected_set = set(expectedParcels)
+		found_set = set(parcel_ids)
+		diff = expected_set.difference(found_set)
+
+		self.assertTrue(len(diff) == 0, 'More parcels returned than expected: %s' % ';'.join(list(diff)))
+
+
 				
 
 

@@ -108,10 +108,25 @@ class QueryTest(ParcelTest):
 		ucase_test['comparitor1'] = 'in-ucase'
 		self.check_parcels(ucase_test, expected_parcels)
 
+	def test_like_all(self):
+		"""
+		Test the 'like-all' search operator (ticket #35)
+		"""
 
+		# This test has the same problems as the 
+		# uppercase-in test.
 
+		expected_parcels = ['130270001077']
+		names_to_try = [
+			'theo allen',
+			'Allen Theo'
+		]
+		likeall_test = {
+			"comparitor0" : "like-all",
+			"fieldname0" : "OWNER_NAME",
+		}
 
-
-
-
-
+		# should return as normal.
+		for name in names_to_try:
+			likeall_test['value0'] = name
+			self.check_parcels(likeall_test, expected_parcels)
