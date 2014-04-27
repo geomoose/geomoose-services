@@ -88,7 +88,7 @@ class InComparitor {
 	}
 
 	public function convert_value($value, $out_delim) {
-		return implode($out_delim, explode($this->p['delim'], $value));
+		return implode($out_delim, array_map('trim', explode($this->p['delim'], $value)));
 	}
 
 	public function toMapServer($field_name, $value) {

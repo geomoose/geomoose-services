@@ -6,23 +6,13 @@ import requests
 
 import re
 import sys
-import unittest
 from xml.dom import minidom
 
 from copy import copy
 
-class GeoMOOSETest(unittest.TestCase):
-	host = "localhost"
-	geomoose_base = "/geomoose2"
+from . import GeoMOOSETest
 
-	def get(self, url, **kwargs):
-		return requests.get(url, **kwargs)
-
-	def post(self, url, **kwargs):
-		return requests.post(url, **kwargs)
-
-
-class SelectTest(GeoMOOSETest):
+class ParcelTest(GeoMOOSETest):
 	def setUp(self):
 		self.select_php = "http://" + self.host + self.geomoose_base + "/php/select.php"
 		self.default_params = {
@@ -36,7 +26,7 @@ class SelectTest(GeoMOOSETest):
 		}
 		super(GeoMOOSETest,self).setUp()
 
-	def check_parcels(self, paramOverrides, expectedParcels):
+	def check_parcels(self, paramOverrides, expectedParcels, pinPattern='(PIN:\<\/b\>\<\/td\>\<td\>)([0-9]+)'):
 		"""
 		Prototype function to sending a set of parameters
 		to the select_php and checking that they are all there.
@@ -56,9 +46,13 @@ class SelectTest(GeoMOOSETest):
 		html = doc.getElementsByTagName('html')[0].firstChild.data
 		html = html.replace('\n','')
 		#<td><b>PIN:</b></td><td>130360001026</td>
-		pin_re = re.compile('(PIN:\<\/b\>\<\/td\>\<td\>)([0-9]+)')
+		pin_re = re.compile(pinPattern)
 		# pull out the PIN entries	
 		parcel_ids = [x[1] for x in pin_re.findall(html)]
+
+		# Some diagnostic outputs for when developing...
+		# print >> sys.stderr, 'Parcel IDs', parcel_ids
+		# print >> sys.stderr, 'Body', html
 
 		# test for all the valid pins here.
 		# expected IDs 
@@ -67,6 +61,7 @@ class SelectTest(GeoMOOSETest):
 				
 
 
+class SelectTest(ParcelTest):
 	def test_ticket24(self):
 		"""
 		Check that buffered parcels are returning a complete set.
@@ -80,6 +75,8 @@ class SelectTest(GeoMOOSETest):
 			"shape" : "POLYGON((-10373109.338156 5552992.5910145,-10373276.544156 5552710.7294727,-10372894.359014 5552720.2841012,-10373109.338156 5552992.5910145))"
 
 		}
+
+		self.assertTrue(False, 'This test is currently failing')
 
 		self.check_parcels(p, [])
 
