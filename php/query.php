@@ -26,7 +26,7 @@ THE SOFTWARE.*/
 
 include('config.php');
 
-$DEBUG = false;
+$DEBUG = true;
 
 $LATLONG_PROJ = ms_newprojectionobj('epsg:4326');
 
@@ -44,7 +44,7 @@ class Comparitor {
 	}
 
 	public function toMapServer($field_name, $value) {
-		return sprintf($this->p['ms'], strtoupper($field_name), $value);
+		return sprintf($this->p['ms'], $field_name, $value);
 	}
 
 	public function toSQL($field_name, $value) {
@@ -439,6 +439,7 @@ for($la = 0; $la < sizeof($query_layers); $la++) {
 					$results = $map->processquerytemplate(array(), MS_FALSE);
 					if($DEBUG) { error_log('Results from MS: '.$results); }
 					$content = $content . $results;
+					#if($DEBUG) { error_log('Current content'); error_log($content); error_log('end current content'); }
 				}
 			}
 		}
@@ -459,7 +460,7 @@ if($totalResults == 0) {
 }
 
 if($mode == 'search') {
-	header('Content-type: text/xml');
+	header('Content-type: text/xml; charset='.$CONFIGURATION['output-encoding']);
 	print "<results n='".$totalResults."'>";
 	print "<script><![CDATA[";
 	$qlayers = implode(':', $query_layers);
@@ -501,8 +502,11 @@ if($mode == 'search') {
 
 	$headerArray = file($CONFIGURATION['query_header']);
 	$footerArray = file($CONFIGURATION['query_footer']);
-	$contents = implode('', array_merge($headerArray, array($content), $footerArray));
-	print $contents;
+	print implode('', $headerArray);
+	# this is a bit of a flail but it prevents us from depending
+	# on UTF8 or LATIN1 as being predictable inputs-and-outputs.
+	print mb_convert_encoding($content, $CONFIGURATION['output-encoding'], 'LATIN1,ASCII,JIS,UTF-8,EUC-JP,SJIS');
+	print implode('', $footerArray);
 
 	print "]]></html>";
 	print "</results>";

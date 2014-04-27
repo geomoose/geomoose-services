@@ -34,27 +34,28 @@ class ParcelTest(GeoMOOSETest):
 		params = copy(self.default_params)
 		params.update(paramOverrides)
 
-		print >> sys.stderr, 'Params', params
 
 		results = self.post(self.select_php, params=params)
 		# check to make sure we got a valid response from the server.
 		self.assertEqual(results.status_code, 200, "Failed to get valid return form service.")
 
-		# parse the XML
-		try:
-			doc = minidom.parseString(results.text)
-		except:
-			self.assertTrue(False, 'Failed to parse document:\n%s' % results.text)
-		html = doc.getElementsByTagName('html')[0].firstChild.data
-		html = html.replace('\n','')
-		#<td><b>PIN:</b></td><td>130360001026</td>
-		pin_re = re.compile(pinPattern)
-		# pull out the PIN entries	
-		parcel_ids = [x[1] for x in pin_re.findall(html)]
+		# replacing all the newlines was causing very odd
+		#  buffer over flows on long strings, so we just split
+		#  each line and parse it individually.
+		html = results.text.split('\n')
+		#print >> sys.stderr, 'RAW', results.text
 
-		# Some diagnostic outputs for when developing...
-		print >> sys.stderr, 'Parcel IDs', parcel_ids
-		print >> sys.stderr, 'Body', html
+		# print >> sys.stderr, 'HTML', html
+		#<td><b>PIN:</b></td><td>130360001026</td>
+		pin_re = re.compile(pinPattern, re.UNICODE)
+		# pull out the PIN entries	
+		parcel_ids = []
+
+		for line in html:
+			found_ids = [x[1] for x in pin_re.findall(line)]
+			parcel_ids += found_ids
+
+		#print >> sys.stderr, 'Found Parcels', parcel_ids
 
 		# test for all the valid pins here.
 		# expected IDs 
@@ -98,17 +99,17 @@ class SelectTest(ParcelTest):
 		"""
 		expected_parcels = ['130270001077']
 		layer_test = {
-			"shape" : "POINT(-10374958.869833%205552691.0678879)"
+			"shape" : "POINT(-10374958.869833 5552691.0678879)"
 		}
 		self.check_parcels(layer_test, expected_parcels)
 		group_test = {
-			"shape" : "POINT(-10374958.869833%205552691.0678879)",
+			"shape" : "POINT(-10374958.869833 5552691.0678879)",
 			"select_layer" : "parcels/parcels_group"
 		}
 		self.check_parcels(group_test, expected_parcels)
 		all_test = {
-			"shape" : "POINT(-10374958.869833%205552691.0678879)",
+			"shape" : "POINT(-10374958.869833 5552691.0678879)",
 			"select_layer" : "parcels/all"
 		}
-		self.check_parcels(all_test, ['130270001077']);
+		self.check_parcels(all_test, expected_parcels)
 

@@ -136,12 +136,17 @@ class QueryTest(ParcelTest):
 	def test_utf8(self):
 		"""
 		Search for an umlaut, an enye, and a cedilla
+		
+		This test will FAIL! It will fail because mapserver
+		is not returning the international characters in the template
+		and I don't want to write the exceptions to make it look like
+		it is passing.
 		"""
 		search_words = [
+			u'M\xe4dchen', # german
 			u'Girl', # english
 			u'Gar\xe7on', # french / portuguese
 			u'Ni\xf1a', # spanish
-			u'M\xe4dchen', # german
 		]
 
 		utf8_test = {
@@ -150,14 +155,10 @@ class QueryTest(ParcelTest):
 			'comparitor0' : 'eq-str'
 		}
 
-		from urllib import quote
-		import sys
-
 		#pattern: id;name!
-		test_regex = '([0-9]+)\;([\w]+)\!'
+		test_regex = '([0-9]+)\;(\w+)\!'
 		for name in search_words:
 			utf8_test['value0'] = name
-			print >> sys.stderr, 'URL Escape Name: ',quote(name.encode('utf8'))
 			# check parcels is a bit misleading here because our
 			# test template returns things formatted nice we just
 			# abuse the regex
