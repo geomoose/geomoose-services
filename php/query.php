@@ -112,6 +112,36 @@ class InUpperCaseComparitor extends InComparitor {
 	}
 }
 
+# 
+# This comparitor was contirbuted by Oregon Counties. It's
+# a bit modified from its original form but gets the job done.
+#
+class LikeAllComparitor extends InComparitor {
+	public function __construct() {
+		$this->p['delim'] = ' ';
+	}
+	
+	public function clean_values($value) {
+		return array_map('trim', array_map('strtoupper', explode($this->p['delim'], $value)));
+	}
+
+	public function toMapServer($field_name, $value) {
+		$arr = array();
+		foreach($this->clean_values($value) as $v) {
+			$arr[] = sprintf('("[%s]" ~* "%s")', $field_name, $v);
+		}
+		return '('.implode(' AND ', $arr).')';
+	}
+
+	public function toSQL($field_name, $value) {
+		$arr = array();
+		foreach($this->clean_values($value) as $v) {
+			$arr[] = sprintf("%s like '%%'||%s||'%%'", $field_name, $v);
+		}
+		return implode(' AND ', $arr);
+	}
+}
+
 $comparitors = array();
 # string specific operations
 # mapserver doesn't quite honor this the way I'd like it to but at the very least,
@@ -133,6 +163,7 @@ $comparitors['lt'] = new Comparitor('[%s] < %s', '%s < %s');
 
 $comparitors['in'] = new InComparitor();
 $comparitors['in-ucase'] = new InUpperCaseComparitor();
+$comparitors['like-all'] = new LikeAllComparitor();
 
 $operators = array();
 
