@@ -48,7 +48,6 @@ function getImage($url,$debug=false) {
 	curl_setopt($ch, CURLOPT_HEADER, 0);
 	curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); #Access HTTPS
 	curl_exec($ch);
-
 	$mimetype = curl_getinfo($ch,CURLINFO_CONTENT_TYPE);
 	curl_close($ch);
 	fclose($outfile);
@@ -119,6 +118,10 @@ function getWMSImage($layer, $mapW, $mapH, $extent, $debug=false) {
 	} else {
 		$format = 'image/jpeg';
 	}
+	# trims extra mime-data that doesn't always get swollowed 
+	#  well down the line.
+	$format = explode(';', $format);
+	$format = $format[0];
 
 	# See if we specify the srs in the params...
 	if($layer['params']['srs']) {
@@ -222,6 +225,7 @@ function renderImage($mapbook, $layers_json,  $mapImageWidth, $mapImageHeight, $
 			$image = getAgsImage($layer, $mapImageWidth, $mapImageHeight, $extent, $debug);
 		}
 		if($image) {
+			imagejpeg($printImage, '/tmp/out/test'.$i.'.jpg');
 			imagecopymerge_alpha($printImage, $image, 0, 0, 0, 0, $mapImageWidth, $mapImageHeight, (float)$opacity);
 		}
 	}

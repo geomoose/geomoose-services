@@ -67,7 +67,8 @@ $quality = (float)$_REQUEST['quality'];
 
 $preserveScale = $_REQUEST['scale'];
 
-$print_info = json_decode($_REQUEST['layers'], true);
+# strip slashes fixes an escaping problem with PHP and posting a JSON ball.
+$print_info = json_decode(stripslashes($_REQUEST['layers']), true);
 
 # Add some bounds...
 if($quality <= 0) { $quality = 1; }
