@@ -34,6 +34,8 @@ class ParcelTest(GeoMOOSETest):
 		params = copy(self.default_params)
 		params.update(paramOverrides)
 
+		print >> sys.stderr, 'Params', params
+
 		results = self.post(self.select_php, params=params)
 		# check to make sure we got a valid response from the server.
 		self.assertEqual(results.status_code, 200, "Failed to get valid return form service.")
@@ -51,8 +53,8 @@ class ParcelTest(GeoMOOSETest):
 		parcel_ids = [x[1] for x in pin_re.findall(html)]
 
 		# Some diagnostic outputs for when developing...
-		# print >> sys.stderr, 'Parcel IDs', parcel_ids
-		# print >> sys.stderr, 'Body', html
+		print >> sys.stderr, 'Parcel IDs', parcel_ids
+		print >> sys.stderr, 'Body', html
 
 		# test for all the valid pins here.
 		# expected IDs 

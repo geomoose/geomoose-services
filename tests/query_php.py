@@ -23,8 +23,10 @@ class QueryTest(ParcelTest):
 		self.pin_re = '(data-pin=")([0-9]+)"'
 
 
-	def check_parcels(self, search_opts, expected_parcels):
-		super(QueryTest, self).check_parcels(search_opts, expected_parcels, self.pin_re)
+	def check_parcels(self, search_opts, expected_parcels, regex=None):
+		if(regex is None):
+			regex = self.pin_re
+		super(QueryTest, self).check_parcels(search_opts, expected_parcels, regex)
 
 	#
 	# TODO: Test more operators and combinations and standards.
@@ -130,3 +132,35 @@ class QueryTest(ParcelTest):
 		for name in names_to_try:
 			likeall_test['value0'] = name
 			self.check_parcels(likeall_test, expected_parcels)
+	
+	def test_utf8(self):
+		"""
+		Search for an umlaut, an enye, and a cedilla
+		"""
+		search_words = [
+			u'Girl', # english
+			u'Gar\xe7on', # french / portuguese
+			u'Ni\xf1a', # spanish
+			u'M\xe4dchen', # german
+		]
+
+		utf8_test = {
+			'layer0' : 'international/testing',
+			'fieldname0' : 'name',
+			'comparitor0' : 'eq-str'
+		}
+
+		from urllib import quote
+		import sys
+
+		#pattern: id;name!
+		test_regex = '([0-9]+)\;([\w]+)\!'
+		for name in search_words:
+			utf8_test['value0'] = name
+			print >> sys.stderr, 'URL Escape Name: ',quote(name.encode('utf8'))
+			# check parcels is a bit misleading here because our
+			# test template returns things formatted nice we just
+			# abuse the regex
+			self.check_parcels(utf8_test, [name,], test_regex)
+
+

@@ -69,6 +69,11 @@ function parseLocalConf() {
 # run it upon inclusion
 parseLocalConf();
 
+# Enable encoding settings
+mb_internal_encoding($CONFIGURATION['input-encoding']);
+mb_http_output($CONFIGURATION['output-encoding']);
+ob_start('mb_output_handler');
+
 
 function getMapbook() {
 	global $CONFIGURATION;
@@ -228,7 +233,7 @@ function get_request_icase($param_name) {
 	if(!isset($value)) {
 		$value = $_REQUEST[$upper_case];
 	}
-	return $value;
+	return utf8_decode($value);
 }
 
 #
