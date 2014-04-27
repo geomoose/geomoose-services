@@ -47,27 +47,27 @@ $mapbook = getMapbook();
  */
 
 #$layers = explode(':', $_REQUEST['layers']);
-$mode = urldecode($_REQUEST['mode']);
-$padding = urldecode($_REQUEST['padding']);
-$extent = explode(',', urldecode($_REQUEST['extent']));
-$units = urldecode($_REQUEST['units']);
+$mode = $_REQUEST['mode'];
+$padding = $_REQUEST['padding'];
+$extent = explode(',', $_REQUEST['extent']);
+$units = $_REQUEST['units'];
 if(!isset($units)) {
 	$units = 'm';
 }
 
 $template_path = '../../conf/print/';
-$template = urldecode($_REQUEST['template']);
+$template = $_REQUEST['template'];
 # some sanitization...
 $template = preg_replace('/\/\\\./', '', $template).'.xml';
 
 $template_info = new DOMDocument();
 $template_info->load($template_path.$template);
 
-$quality = (float)(urldecode($_REQUEST['quality']));
+$quality = (float)$_REQUEST['quality'];
 
-$preserveScale = urldecode($_REQUEST['scale']);
+$preserveScale = $_REQUEST['scale'];
 
-$print_info = json_decode(urldecode($_REQUEST['layers']), true);
+$print_info = json_decode($_REQUEST['layers'], true);
 
 # Add some bounds...
 if($quality <= 0) { $quality = 1; }
@@ -75,10 +75,10 @@ if($quality > 3) { $quality = 3; }
 
 if( $mode == "feature_report") {
 
-	$mapfile = getMapfile($mapbook, urldecode($_REQUEST['src']));
+	$mapfile = getMapfile($mapbook, $_REQUEST['src']);
 	$mapObj = ms_newMapObj($CONFIGURATION['root'].$mapfile);
 
-	$path = explode('/', urldecode($_REQUEST['src']));
+	$path = explode('/', $_REQUEST['src']);
 	$layer = false;
 	if($path[1] == 'all') {
 		$layer = $mapObj->getLayer(0); # Don't use all...
@@ -89,7 +89,7 @@ if( $mode == "feature_report") {
 	$query_info = $template_info->getElementsByTagName('query')->item(0);
 	$qItem = $query_info->getAttribute('item');
 	$layer->set('filteritem', $qItem);
-	$layer->setFilter(str_replace('%qstring%', urldecode($_REQUEST[$qItem]), $query_info->getAttribute('string')));
+	$layer->setFilter(str_replace('%qstring%', $_REQUEST[$qItem], $query_info->getAttribute('string')));
 
 	$shape = false;
 	$layer->set('template', 'dummy.html');
@@ -162,7 +162,7 @@ if($CONFIGURATION['print_html'] == 1) {
 		$htmlOut = $htmlOut . $line;
 	}
 	foreach($_REQUEST as $k => $v) {
-		$htmlOut = str_replace('%'.$k.'%', urldecode(utf8_decode($v)), $htmlOut);
+		$htmlOut = str_replace('%'.$k.'%', utf8_decode($v), $htmlOut);
 	}
 
 	$out = fopen($tempDir.$uniqueId.'.html', 'w');
@@ -244,7 +244,7 @@ if($CONFIGURATION['print_pdf'] == 1) {
 				if($k == "date" && $v == "true"){
 					$v = "Printed " . date("m/d/Y") . " ";
 				}
-				$printString = str_replace('%'.$k.'%', urldecode(utf8_decode($v)), $printString);
+				$printString = str_replace('%'.$k.'%', utf8_decode($v), $printString);
 			}
 		}
 

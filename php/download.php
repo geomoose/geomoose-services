@@ -31,9 +31,9 @@ THE SOFTWARE.*/
 include('config.php');
 $tempDir = $CONFIGURATION['temp'];
 
-$id = urldecode($_REQUEST['id']);
-$ext = urldecode($_REQUEST['ext']);
-$as_download = urldecode($_REQUEST['download']);
+$id = $_REQUEST['id'];
+$ext = $_REQUEST['ext'];
+$as_download = $_REQUEST['download'];
 
 $mimetypes = array(
 	'pdf' => 'application/pdf',

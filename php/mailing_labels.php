@@ -31,10 +31,10 @@ if(!$DEBUG) {
 }
 
 # Get the query id from which we are going to get the files
-$query_id = urldecode($_REQUEST['queryid']);
+$query_id = $_REQUEST['queryid'];
 
 # format for the labels
-$output = urldecode($_REQUEST['output']);
+$output = $_REQUEST['output'];
 if(!isset($output)) { $output = 'html'; }
 
 # get some config
