@@ -100,6 +100,18 @@ class InComparitor {
 	}
 }
 
+#
+# This is a special case of the incomparitor that 
+# also performs an 'all caps' search.  This is used by Orgeon Counties
+# and could be potential useful for others who are searching data
+# with a legacy standard of some sort.
+#
+class InUpperCaseComparitor extends InComparitor {
+	public function convert_value($value, $out_delim) {
+		return strtoupper(parent::convert_value($value, $out_delim));
+	}
+}
+
 $comparitors = array();
 # string specific operations
 # mapserver doesn't quite honor this the way I'd like it to but at the very least,
@@ -120,6 +132,7 @@ $comparitors['le'] = new Comparitor('[%s] <= %s', '%s <= %s');
 $comparitors['lt'] = new Comparitor('[%s] < %s', '%s < %s');
 
 $comparitors['in'] = new InComparitor();
+$comparitors['in-ucase'] = new InUpperCaseComparitor();
 
 $operators = array();
 
