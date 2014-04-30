@@ -119,26 +119,51 @@ class InUpperCaseComparitor extends InComparitor {
 class LikeAllComparitor extends InComparitor {
 	public function __construct() {
 		$this->p['delim'] = ' ';
+		$this->p['delim-join'] = ' AND ';
+		# if multiple field names are passed in, 
+		#  then we join them with the multi-op field.
+		$this->p['multi-op'] = ' AND ';
+		$this->p['field-delim'] = ',';
 	}
 	
 	public function clean_values($value) {
 		return array_map('trim', array_map('strtoupper', explode($this->p['delim'], $value)));
 	}
 
-	public function toMapServer($field_name, $value) {
-		$arr = array();
-		foreach($this->clean_values($value) as $v) {
-			$arr[] = sprintf('("[%s]" ~* "%s")', $field_name, $v);
+	private function join_fields($field_name, $value, $logic) {
+		$fields = explode($this->p['field-delim'], $field_name);
+		$atoms = array();
+		foreach($fields as $fname) {
+			$arr = array();
+			foreach($this->clean_values($value) as $v) {
+				$arr[] = sprintf($logic, $fname, $v);
+			}
+			$atoms[]  = '('.implode($this->p['delim-join'], $arr).')';
 		}
-		return '('.implode(' AND ', $arr).')';
+		return implode($this->p['multi-op'], $atoms); 
+	}
+
+	public function toMapServer($field_name, $value) {
+		return $this->join_fields($field_name, $value, '("[%s]" ~* "%s")');
 	}
 
 	public function toSQL($field_name, $value) {
-		$arr = array();
-		foreach($this->clean_values($value) as $v) {
-			$arr[] = sprintf("%s like '%%'||%s||'%%'", $field_name, $v);
-		}
-		return implode(' AND ', $arr);
+		return $this->join_fields($field_name, $value, "%s like '%%'||%s||'%%'");
+	}
+}
+
+#
+# Allows for any fields to match any value.
+#
+class LikeAnyComparitor extends LikeAllComparitor {
+	public function __construct() {
+		parent::__construct();
+		$this->p['delim'] = ' ';
+		$this->p['delim-join'] = ' OR ';
+		# if multiple field names are passed in, 
+		#  then we join them with the multi-op field.
+		$this->p['multi-op'] = ' OR ';
+		$this->p['field-delim'] = ',';
 	}
 }
 
@@ -164,6 +189,7 @@ $comparitors['lt'] = new Comparitor('[%s] < %s', '%s < %s');
 $comparitors['in'] = new InComparitor();
 $comparitors['in-ucase'] = new InUpperCaseComparitor();
 $comparitors['like-all'] = new LikeAllComparitor();
+$comparitors['like-any'] = new LikeAnyComparitor();
 
 $operators = array();
 
@@ -355,6 +381,7 @@ for($la = 0; $la < sizeof($query_layers); $la++) {
 								$predicate_strings[] = $predicates[$i]->toSQL();
 							} else {
 								$predicate_strings[] = $predicates[$i]->toMapServer();
+								error_log($predicates[$i]->toMapServer());
 							}
 						}
 					}
@@ -437,7 +464,7 @@ for($la = 0; $la < sizeof($query_layers); $la++) {
 
 					$map->queryByRect($ext);
 					$results = $map->processquerytemplate(array(), MS_FALSE);
-					if($DEBUG) { error_log('Results from MS: '.$results); }
+					#if($DEBUG) { error_log('Results from MS: '.$results); }
 					$content = $content . $results;
 					#if($DEBUG) { error_log('Current content'); error_log($content); error_log('end current content'); }
 				}

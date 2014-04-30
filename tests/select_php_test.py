@@ -66,7 +66,9 @@ class ParcelTest(GeoMOOSETest):
 		# than we were looking to find.
 		expected_set = set(expectedParcels)
 		found_set = set(parcel_ids)
-		diff = expected_set.difference(found_set)
+		diff = found_set.difference(expected_set)
+		
+		#print >> sys.stderr, 'Found Length: ', len(found_set), 'Diff Length:', len(diff)
 
 		self.assertTrue(len(diff) == 0, 'More parcels returned than expected: %s' % ';'.join(list(diff)))
 

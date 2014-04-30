@@ -5,7 +5,7 @@
 
 from . import GeoMOOSETest
 
-from select_php import ParcelTest 
+from select_php_test import ParcelTest 
 
 class QueryTest(ParcelTest):
 	def setUp(self):
@@ -132,6 +132,29 @@ class QueryTest(ParcelTest):
 		for name in names_to_try:
 			likeall_test['value0'] = name
 			self.check_parcels(likeall_test, expected_parcels)
+	
+	def test_like_any_multifield(self):
+		"""
+		Test the 'like-any' search operator across multiple fields (ticket #35)
+		"""
+		kevin_parcel = ['160010001001']
+		village_parcels = ['160300001150', '160300002075', '160300001076', '160300001002', '160300001251', '160300001025', '160300001101', '160300003051', '160300001201', '160300001052', '160300002051', '160300001175']
+		names_to_try = [
+			('kevin', kevin_parcel),
+			('Kevin', kevin_parcel),
+			('duck village kevin', kevin_parcel+village_parcels)
+		]
+
+		like_any_test = {
+			"comparitor0" : "like-any",
+			"fieldname0" : "OWNER_NAME,CITY",
+		}
+
+		# should return as normal.
+		for name in names_to_try:
+			like_any_test['value0'] = name[0]
+			self.check_parcels(like_any_test, name[1])
+	
 	
 	def test_utf8(self):
 		"""
