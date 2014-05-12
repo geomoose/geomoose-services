@@ -504,6 +504,7 @@ if($mode == 'search') {
 		$partial_params[] = "'TRANSPARENT' : 'true'";
 		$partial_params[] = "'FORMAT' : 'image/png'";
 		$partial_params[] = "'LAYERS' : 'highlight'";
+		$partial_params[] = "'MODE' : 'map'";
 		print "GeoMOOSE.clearLayerParameters('highlight');";
 		print "GeoMOOSE.updateLayerParameters('highlight', {".implode(',',$partial_params)."});";
 		print "GeoMOOSE.turnLayerOn('highlight/highlight');";
