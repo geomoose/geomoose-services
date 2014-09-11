@@ -24,7 +24,32 @@ class ParcelTest(GeoMOOSETest):
 			"selection_buffer" : "0",
 			"shape" : "POINT(-10373109.338156 5552992.5910145)"
 		}
-		super(GeoMOOSETest,self).setUp()
+		super(ParcelTest,self).setUp()
+
+	def fetchHighlightImage(self, selectionId, testName):
+		params = {
+			"BBOX" : "-10375087.146263,5551951.1365041,-10371676.143877,5554320.6843807",
+			"FORMAT": "image/png",
+			"HEIGHT": "496",
+			"LAYERS" : "highlight",
+			"MAP": selectionId,
+			"SRS": "EPSG:3857",
+			"TRANSPARENT": "true",
+			"WIDTH": "714",
+			"REQUEST" : "GetMap",
+			"SERVICE": "WMS",
+			"STYLES": "",
+			"VERSION": "1.1.1"
+		}
+		response = self.get("http://"+self.host+self.mapserver_base, params=params)
+		# TODO: Test response results...
+		f = open(self.temp_dir+'/'+testName+'.png', 'w')
+		f.write(response.content)
+		f.close()
+
+		return response
+
+
 
 	def check_parcels(self, paramOverrides, expectedParcels, pinPattern='(PIN:\<\/b\>\<\/td\>\<td\>)([0-9]+)'):
 		"""
@@ -59,8 +84,12 @@ class ParcelTest(GeoMOOSETest):
 
 		# test for all the valid pins here.
 		# expected IDs 
+		missing_parcels = []
 		for expected_id in expectedParcels:
-			self.assertTrue(expected_id in parcel_ids, 'Parcel ID not found in results: '+expected_id)
+			if(expected_id not in parcel_ids):
+				missing_parcels.append(expected_id)
+
+		self.assertEqual(len(missing_parcels), 0, 'Parcel ID not found in results: '+';'.join(missing_parcels))
 
 		# now test that we didn't get *more* parcels
 		# than we were looking to find.
@@ -72,7 +101,7 @@ class ParcelTest(GeoMOOSETest):
 
 		self.assertTrue(len(diff) == 0, 'More parcels returned than expected: %s' % ';'.join(list(diff)))
 
-
+		return results
 				
 
 
@@ -83,17 +112,33 @@ class SelectTest(ParcelTest):
 		"""
 		p = {
 			"select_layer" : "parcels/parcels",
+			"query_layer" : "parcels/parcels",
 			"shape_buffer" : "0",
 			"selection_buffer" : "30.479983540808888", # "100ft" converted to meters
-			#"shape" : "POLYGON((-10372942.132157%205552892.2674148,-10373180.99787%205552682.0655871,-10372865.695129%205552672.5109586,-10372942.132157%205552892.2674148))"
-			#"shape" : "POLYGON((-10373109.338156%205552992.5910145,-10373276.544156%205552710.7294727,-10372894.359014%205552720.2841012,-10373109.338156%205552992.5910145))"
-			"shape" : "POLYGON((-10373109.338156 5552992.5910145,-10373276.544156 5552710.7294727,-10372894.359014 5552720.2841012,-10373109.338156 5552992.5910145))"
+			"shape" : "POINT(-10372932.577528 5552764.4742582)"
 
 		}
 
-		self.assertTrue(False, 'This test is currently failing')
+		expected_parcels = [
+			#'130250001028', 
+			#'130260001025', 
+			'130250001050', '130260001101', '130260001201',
+			'130260001150', '130260001051', '130260001275',
+			'130260001175', '130350002001', '130350001002', '130350001025',
+			'130360001026'
+		]
 
-		self.check_parcels(p, [])
+		# this data should return correctly but there will be a missing 
+		#  parcel in the highlight
+		results = self.check_parcels(p, expected_parcels)
+
+		# Parsing ... it happens.
+		find_map = results.text.find("'map'")
+		first_apos = results.text.find("'", find_map+5+1)
+		second_apos = results.text.find("'", first_apos+1)
+		selection_id = results.text[first_apos+1:second_apos]
+		self.fetchHighlightImage(selection_id, 'ticket24')
+		# TODO : Automate the viewing of this image, even though it downloads reasonably
 
 	def test_ticket31(self):
 		"""

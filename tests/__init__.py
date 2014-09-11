@@ -5,10 +5,18 @@
 
 import unittest
 import requests
+import os
+import os.path
 
 class GeoMOOSETest(unittest.TestCase):
 	host = "localhost"
 	geomoose_base = "/geomoose2"
+	mapserver_base = "/mapserver/cgi-bin/mapserv"
+	temp_dir = '/tmp/gm_tests/'
+
+	def setUp(self):
+		if(not os.path.isdir(self.temp_dir)):
+			os.mkdir(self.temp_dir)
 
 	def get(self, url, **kwargs):
 		return requests.get(url, **kwargs)
