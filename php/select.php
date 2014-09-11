@@ -100,7 +100,6 @@ $queryShapes = array();
 # Add the initial selection shape to the query shapes array
 $queryShapes[] = $selectShape;
 
-
 # If we have a query layer from which to pull shapes, we'll do that.
 if(isset($queryLayer) and $queryLayer != null and $queryLayer != '') {
 	$queryMap = getMapfile($mapbook, $queryLayer);
@@ -200,6 +199,7 @@ for($i = 0; $i < $map->numlayers; $i++) {
 	$layer->set('template', ''); # this should prevent layers from being queried.
 	if($layerName == 'all' or $layer->name == $layerName or $layer->group == $layerName) {
 		$layersToQuery[] = $layer;
+		if($DEBUG) { error_log('Added layer to query stack: '.$layer->name); }
 	}
 }
 
@@ -241,8 +241,9 @@ foreach($layersToQuery as $layer) {
 	if($DEBUG) {
 		error_log('select.php :: q_shape :'.$q_shape->toWkt());
 	}
-	#$layer->queryByShape($q_shape);
+	$layer->whichShapes($q_shape->bounds);
 	$layer->queryByRect($q_shape->bounds);
+	#$layer->queryByShape($q_shape);
 
 	while($shape = $layer->nextShape()) {
 		# if we have a projection, convert the shape into latlong
