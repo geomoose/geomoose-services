@@ -87,7 +87,9 @@ if($DEBUG) {
 }
 
 # buffer the shape, 
-$selectShape = saneBuffer($selectShape, NULL, $selection_buffer);
+if($selection_buffer > 0 or $selection_buffer < 0) {
+	#$selectShape = saneBuffer($selectShape, NULL, $selection_buffer);
+}
 
 if($DEBUG) {
 	error_log('Selection buffer: '.$selection_buffer);
@@ -147,6 +149,7 @@ if(isset($queryLayer) and $queryLayer != null and $queryLayer != '') {
 		$shapeLayersToQuery[$i]->set('template','dummy.html');
 		# do the query.
 		$shapeLayersToQuery[$i]->open();
+		$shapeLayersToQuery[$i]->whichShapes($layer_query_shape->bounds);
 		$shapeLayersToQuery[$i]->queryByShape($layer_query_shape);
 
 		$layer = $shapeLayersToQuery[$i];
@@ -154,13 +157,13 @@ if(isset($queryLayer) and $queryLayer != null and $queryLayer != '') {
 			# okay, now we normalize these shapes to 4326, I need something normal
 			# just for a second.
 			# add it to our querying stack for later.ww
-			if($layer_query_shape->intersects($shape) or $shape->containsShape($layer_query_shape) == MS_TRUE or $shape->touches($layer_query_shape) == MS_TRUE or $shape->overlaps($layer_query_shape) == MS_TRUE) {
+			if(true or $layer_query_shape->intersects($shape) or $shape->containsShape($layer_query_shape) == MS_TRUE or $shape->touches($layer_query_shape) == MS_TRUE or $shape->overlaps($layer_query_shape) == MS_TRUE) {
 				if($layer_projection != NULL) {
 					# convert the shape to wgs84 for internal use.
 					$shape->project($layer_projection, $LATLONG_PROJ);
 				}
 
-				if($shape_buffer > 0) {
+				if(false and $shape_buffer > 0) {
 					$queryShapes[] = saneBuffer($shape, NULL, $shape_buffer, $DEBUG);
 				} else {
 					$queryShapes[] = $shape;
@@ -242,12 +245,12 @@ foreach($layersToQuery as $layer) {
 		error_log('select.php :: q_shape :'.$q_shape->toWkt());
 	}
 	$layer->whichShapes($q_shape->bounds);
-	$layer->queryByRect($q_shape->bounds);
-	#$layer->queryByShape($q_shape);
+	#$layer->queryByRect($q_shape->bounds);
+	$layer->queryByShape($q_shape);
 
 	while($shape = $layer->nextShape()) {
 		# if we have a projection, convert the shape into latlong
-		if($shape->intersects($q_shape) == TRUE or $shape->containsShape($q_shape) == MS_TRUE) {
+		if(true or $shape->intersects($q_shape) == TRUE or $shape->containsShape($q_shape) == MS_TRUE) {
 			if($projection != NULL) {
 				$shape->project($projection, $LATLONG_PROJ);
 			}
