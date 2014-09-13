@@ -353,7 +353,7 @@ fclose($mapfileOut);
 
 
 # All that work for a dozen lines of output.
-header('Content-type: application/xml');
+header('Content-type: application/xml; charset='.$CONFIGURATION['output-encoding']);
 print "<results>";
 print "<script><![CDATA[";
 

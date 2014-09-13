@@ -57,7 +57,7 @@ function create_param($name,$value) {
 $conf->appendChild(create_param('mapserver_url',$CONFIGURATION['mapserver_url']));
 $conf->appendChild(create_param('mapfile_root',$CONFIGURATION['root']));
 
-header('Content-type: application/xml;text/xml');
+header('Content-type: application/xml; charset='.$CONFIGURATION['output-encoding']);
 print $mapbook->saveXML();
 
 ?>

@@ -27,7 +27,7 @@ THE SOFTWARE.*/
 ?>
 
 <?php
-header('Content-type: application/xml');
+header('Content-type: application/xml; charset='.$CONFIGURATION['output-encoding']);
 print "<results><html><![CDATA[";
 
 print "<ul>";

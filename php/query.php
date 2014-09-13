@@ -487,7 +487,7 @@ if($totalResults == 0) {
 }
 
 if($mode == 'search') {
-	header('Content-type: text/xml; charset='.$CONFIGURATION['output-encoding']);
+	header('Content-type: application/xml; charset='.$CONFIGURATION['output-encoding']);
 	print "<results n='".$totalResults."'>";
 	print "<script><![CDATA[";
 	$qlayers = implode(':', $query_layers);

@@ -134,7 +134,7 @@ $printImage = renderImage($mapbook, $print_info,  $mapImageWidth, $mapImageHeigh
 
 imagejpeg($printImage, $tempDir.$uniqueId.'.jpg');
 
-header("Content-type: application/xml");
+header('Content-type: application/xml; charset='.$CONFIGURATION['output-encoding']);
 print "<results><script>";
 
 if($mode == "feature_report"){

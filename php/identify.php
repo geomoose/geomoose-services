@@ -239,7 +239,7 @@ $footerArray = file($CONFIGURATION['identify_footer']);
 $contents = implode('', array_merge($headerArray, array($content)));
 $footer_contents = implode('', $footerArray);
 
-header('Content-type: application/xml');
+header('Content-type: application/xml; charset='.$CONFIGURATION['output-encoding']);
 print "<results>";
 print "<script>";
 print " GeoMOOSE.clearLayerParameters('highlight');";

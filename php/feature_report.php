@@ -136,7 +136,7 @@ for($i = 0; $i < $fields->length; $i++) {
 
 $pdf->Output($tempDir.$uniqueId.'.pdf');
 
-header('Content-type: application/xml');
+header('Content-type: application/xml; charset='.$CONFIGURATION['output-encoding']);
 print '<results>';
 print '<script>';
 print 'GeoMOOSE.download("'.$uniqueId.'","pdf");';
