@@ -26,7 +26,7 @@ class QueryTest(ParcelTest):
 	def check_parcels(self, search_opts, expected_parcels, regex=None):
 		if(regex is None):
 			regex = self.pin_re
-		super(QueryTest, self).check_parcels(search_opts, expected_parcels, regex)
+		return super(QueryTest, self).check_parcels(search_opts, expected_parcels, regex)
 
 	#
 	# TODO: Test more operators and combinations and standards.
@@ -154,7 +154,7 @@ class QueryTest(ParcelTest):
 		for name in names_to_try:
 			like_any_test['value0'] = name[0]
 			self.check_parcels(like_any_test, name[1])
-	
+
 	
 	def test_utf8(self):
 		"""
@@ -186,5 +186,22 @@ class QueryTest(ParcelTest):
 			# test template returns things formatted nice we just
 			# abuse the regex
 			self.check_parcels(utf8_test, [name,], test_regex)
+
+
+	def test_null_case(self):
+		"""
+		Check that XML is returned when no results are found. (Ticket #35)
+		"""
+
+		like_any_test = {
+			"comparitor0" : "like-any",
+			"fieldname0" : "OWNER_NAME,CITY",
+			"value0" : "AintNoNullCaseLikeAGeoMOOSENullCase"
+		}
+		# these are errors, they are bad.
+		regex = 'mapObj..queryByRect'
+		r = self.check_parcels(like_any_test, [], regex)
+
+
 
 

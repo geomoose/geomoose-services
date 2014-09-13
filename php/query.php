@@ -26,7 +26,7 @@ THE SOFTWARE.*/
 
 include('config.php');
 
-$DEBUG = true;
+$DEBUG = false;
 
 $LATLONG_PROJ = ms_newprojectionobj('epsg:4326');
 
