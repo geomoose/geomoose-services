@@ -23,32 +23,30 @@ THE SOFTWARE.
 
 /*
  * Code contributed by Brian Fischer @ Houston Engineering
+ * Updated on 10/8/2014 by theduckylittle to the V3 API.
  */
 
 $address = $_REQUEST['address'];
-$googlekey = $_REQUEST['googlekey'];
+$request_url = "https://maps.googleapis.com/maps/api/geocode/xml?address=".urlencode($address);
 
-$streetaddress = $address;
-
-$url = "http://maps.google.com/maps/geo?output=xml&key=$googlekey";
-
-$request_url = $url . "&q=" . urlencode($streetaddress);
+error_log('query url: '.$request_url);
 
 $xml = simplexml_load_file($request_url) or die("url not loading");
 
-$status = $xml->Response->Status->code;
+$status = $xml->status;
 
-if (strcmp($status, "200") == 0) {
+error_log('GC Status '.$status);
+
+if (strcmp($status, "OK") == 0) {
       // Successful geocode
-      $resolvedaddress = $xml->Response->name;
+      $resolvedaddress = $xml->result->formatted_address;
 
 //print_r($xml);
 
- $coordinates = $xml->Response->Placemark->Point->coordinates;
-      $coordinatesSplit = explode(",", $coordinates);
+ $coordinates = $xml->result->geometry->location;
       // Format: Longitude, Latitude, Altitude
-      $lat = $coordinatesSplit[1];
-      $lng = $coordinatesSplit[0];
+      $lat = $coordinates->lat;
+      $lng = $coordinates->lon;
 
  header('Content-type: application/xml');
       print "<results>";
