@@ -46,7 +46,7 @@ if (strcmp($status, "OK") == 0) {
  $coordinates = $xml->result->geometry->location;
       // Format: Longitude, Latitude, Altitude
       $lat = $coordinates->lat;
-      $lng = $coordinates->lon;
+      $lng = $coordinates->lng;
 
  header('Content-type: application/xml');
       print "<results>";
