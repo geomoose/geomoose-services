@@ -53,7 +53,13 @@ if (strcmp($status, "OK") == 0) {
       print "<script>";
       print "<![CDATA[";
       print "";
-      print "var p = new OpenLayers.Geometry.Point($lng,$lat);OpenLayers.Projection.transform(p,new OpenLayers.Projection('WGS84'),Map.getProjectionObject());GeoMOOSE.zoomToPoint(p.x,p.y,100);GeoMOOSE.addPopup(p.x,p.y,150,50,'<b>Address Resolved To:</b> <br/> $resolvedaddress');";
+      echo <<<ENDOFJS
+      var p = new OpenLayers.Geometry.Point({$lng},{$lat});
+      OpenLayers.Projection.transform(p,new OpenLayers.Projection('WGS84'),Map.getProjectionObject());
+      GeoMOOSE.zoomToPoint(p.x,p.y,100);
+      var px = Map.getPixelFromLonLat(new OpenLayers.LonLat(p.x, p.y));
+      GeoMOOSE.addPopup(px.x,px.y,150,50,'<b>Address Resolved To:</b> <br/> {$resolvedaddress}', 'Geocoder Result');
+ENDOFJS;
       print "]]>";
       print "</script>";
       print "<html>";
