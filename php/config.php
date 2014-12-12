@@ -59,7 +59,14 @@ function parseLocalConf() {
 	global $CONFIGURATION;
 	$local_conf = array();
 	try {
-		$local_conf = parse_ini_file('../../conf/local_settings.ini');
+		# default local settings file.
+		$local_settings = '../../conf/local_settings.ini';
+		# Environment vairable override.
+		if(isset($_ENV['GEOMOOSE_LOCAL_SETTINGS'])) {
+			$local_settings = $_ENV['GEOMOOSE_LOCAL_SETTINGS'];
+		}
+		# parse the local file.
+		$local_conf = parse_ini_file($local_settings);
 	} catch(Exception $e) {
 		# ignore ...
 	}
