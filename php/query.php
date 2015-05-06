@@ -332,7 +332,7 @@ $msXML = $mapbook->getElementsByTagName('map-source');
 # content stores the HTML results
 $content = '';
 $totalResults = 0;
-$firstResult = false;
+$firstResult = true;
 
 # store the features so we can render a map later
 $resultFeatures = array();
@@ -514,7 +514,8 @@ if($mode == 'search') {
 	# If there is only one results ... zoom to it!
 	# or zoom to the first result if requested.
 	if(($totalResults == 1 and $firstResult != false) or ($totalResults >= 1 and $zoomToFirst == true)) {
-		$bounds = $firstResult->bounds;
+		$bounds = $resultFeatures[0]->bounds;
+		$bounds->project($LATLONG_PROJ, $projection);
 		printf('GeoMOOSE.zoomToExtent(%f,%f,%f,%f);', $bounds->minx, $bounds->miny, $bounds->maxx, $bounds->maxy);
 	}
 	print "]]></script>";
