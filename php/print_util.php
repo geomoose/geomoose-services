@@ -225,7 +225,6 @@ function renderImage($mapbook, $layers_json,  $mapImageWidth, $mapImageHeight, $
 			$image = getAgsImage($layer, $mapImageWidth, $mapImageHeight, $extent, $debug);
 		}
 		if($image) {
-			imagejpeg($printImage, '/tmp/out/test'.$i.'.jpg');
 			imagecopymerge_alpha($printImage, $image, 0, 0, 0, 0, $mapImageWidth, $mapImageHeight, (float)$opacity);
 		}
 	}
