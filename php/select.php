@@ -61,7 +61,15 @@ $shape_wkt = $_REQUEST['shape'];
 $LATLONG_PROJ = ms_newprojectionobj('epsg:4326');
 
 # store this for later.
-$drawnShape = reprojectWkt($shape_wkt, ms_newprojectionobj($projection), $LATLONG_PROJ);
+try {
+	$drawnShape = reprojectWkt($shape_wkt, ms_newprojectionobj($projection), $LATLONG_PROJ);
+} catch(MapScriptException $e) {
+	# Ah... not a valid geometry... time to let the user know (Ticket #85)
+	error_log("Invalid shape was given to select.php");
+	errorToUser("Invalid shape was drawn, please fix your drawing and try again.");
+	return True;
+
+}
 
 # This is the layer where shapes are selected from
 $selectLayer = $_REQUEST['select_layer'];
@@ -88,7 +96,7 @@ if($DEBUG) {
 
 # buffer the shape, 
 if($selection_buffer > 0 or $selection_buffer < 0) {
-	#$selectShape = saneBuffer($selectShape, NULL, $selection_buffer);
+	$selectShape = saneBuffer($selectShape, NULL, $selection_buffer);
 }
 
 if($DEBUG) {

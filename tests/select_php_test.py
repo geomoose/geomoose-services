@@ -160,3 +160,19 @@ class SelectTest(ParcelTest):
 		}
 		self.check_parcels(all_test, expected_parcels)
 
+	def test_ticket85(self):
+		"""
+		Test a two point polygon with no buffer (ticket #85)
+		"""
+
+		test_params = {
+			"shape" : "POLYGON((-10375742.69258 5555129.6328634,-10375734.33228 5555115.3009206,-10375742.69258 5555129.6328634))"
+		}
+
+		params = copy(self.default_params)
+		params.update(test_params)
+
+		results = self.post(self.select_php, params=params)
+
+		self.assertEqual(results.status_code, 200, "Service did not catch the exception!")
+

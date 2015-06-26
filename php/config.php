@@ -288,4 +288,21 @@ function parseBoolean($str) {
 	$str = strtolower($str);
 	return ($str == 'true' || $str == 'on' || $str == '1');
 }
+
+#
+# Method: Generic error message that includes all the necessary
+#  wrappers
+#
+# @param errorMessage The status code to return the user.
+#
+function errorToUser($errorMessage) {
+	header('Content-type: application/xml; charset='.$CONFIGURATION['output-encoding']);
+	print "<results>";
+	print "<html><![CDATA[";
+	print "<div class='error-text'>";
+	print $errorMessage;
+	print "</div>";
+	print "]]></html>";
+	print "</results>";
+}
 ?>
