@@ -194,6 +194,7 @@ foreach($queryShapes as $shape) {
 
 # Load up the select map.
 $selectMap = getMapfile($mapbook, $selectLayer);
+
 $map = ms_newMapObj($CONFIGURATION['root'].$selectMap);
 $layersToQuery = array();
 
@@ -258,7 +259,7 @@ foreach($layersToQuery as $layer) {
 
 	while($shape = $layer->nextShape()) {
 		# if we have a projection, convert the shape into latlong
-		if(true or $shape->intersects($q_shape) == TRUE or $shape->containsShape($q_shape) == MS_TRUE) {
+		if($shape->intersects($q_shape) == TRUE or $shape->containsShape($q_shape) == MS_TRUE) {
 			if($projection != NULL) {
 				$shape->project($projection, $LATLONG_PROJ);
 			}
