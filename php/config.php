@@ -97,7 +97,11 @@ function getUsername() {
 # Select Functionality ONLY works for Mapserver Layers
 function getMapfile($mb, $layerName) {
 	$services = $mb->getElementsByTagName('map-source');
-	$mapfiles = array();
+
+	# short cut if the 'all' is available.
+	$path_components = explode('/', $layerName);
+
+	$isAll = ($path_components[1] == 'all');
 	for($i = 0; $i < $services->length; $i++) {
 		$service = $services->item($i);
 		$root = $service->getAttribute('name');
@@ -105,7 +109,7 @@ function getMapfile($mb, $layerName) {
 		for($l = 0; $l < $layers->length; $l++) {
 			$layer = $layers->item($l);
 			$path = $root.'/'.$layer->getAttribute('name');
-			if($path == $layerName) {
+			if($path == $layerName or ($root == $path_components[0] and $isAll)) {
 				return $service->getElementsByTagName('file')->item(0)->nodeValue;
 			}
 		}
