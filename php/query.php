@@ -373,6 +373,12 @@ for($la = 0; $la < sizeof($query_layers); $la++) {
 
 				# Iterate through the queryLayers...
 				foreach($queryLayers as $queryLayer) {
+					$ext = $queryLayer->getExtent();
+					if($DEBUG) {
+						error_log(implode(',', array($ext->minx,$ext->miny,$ext->maxx,$ext->maxy)));
+						error_log("<br/>extent'd.<br/>");
+					}
+
 					$predicate_strings = array();
 					$is_sql = in_array($queryLayer->connectiontype, $SQL_LAYER_TYPES);
 					for($i = 0; $i < sizeof($predicates); $i++) {
@@ -381,7 +387,6 @@ for($la = 0; $la < sizeof($query_layers); $la++) {
 								$predicate_strings[] = $predicates[$i]->toSQL();
 							} else {
 								$predicate_strings[] = $predicates[$i]->toMapServer();
-								error_log($predicates[$i]->toMapServer());
 							}
 						}
 					}
@@ -415,11 +420,6 @@ for($la = 0; $la < sizeof($query_layers); $la++) {
 					}
 					$queryLayer->set('template', $queryLayer->getMetaData($query_templates[$la]));
 
-					$ext = $queryLayer->getExtent();
-					if($DEBUG) {
-						error_log(implode(',', array($ext->minx,$ext->miny,$ext->maxx,$ext->maxy)));
-						error_log("<br/>extent'd.<br/>");
-					}
 					#$queryLayer->setFilter($filter_string);
 					#$queryLayer->set('filteritem', 'PARC_CODE');
 					#$queryLayer->setFilter('1');
@@ -431,8 +431,11 @@ for($la = 0; $la < sizeof($query_layers); $la++) {
 
 					$queryLayer->open();
 					if($DEBUG) { error_log('queryLayer opened'); }
+
+					#$queryLayer->whichShapes($ext); #queryLayer->getExtent());
 					$queryLayer->queryByRect($ext);
 					if($DEBUG) { error_log('queryLayer queried'); }
+
 
 					$numResults = 0;
 
@@ -552,6 +555,8 @@ if($mode == 'search') {
 	$linesLayer = $highlight_map->getLayerByName('lines');
 
 	$poly_features = '';
+
+	error_log('N FEATURES: '.sizeof($resultFeatures));
 
 	for($i = 0; $i < sizeof($resultFeatures); $i++) {
 		if($resultFeatures[$i]->type == MS_SHAPE_POINT) {
