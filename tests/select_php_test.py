@@ -176,3 +176,13 @@ class SelectTest(ParcelTest):
 
 		self.assertEqual(results.status_code, 200, "Service did not catch the exception!")
 
+	def test_ticket84(self):
+		"""
+		Ensure point selector is not over selecting (ticket #84)
+		"""
+
+		test_params = {
+			"shape" : "POINT(-10375755.352418 5555107.2472463)"
+		}
+		self.check_parcels(test_params, ['130220003076'])
+
