@@ -22,3 +22,10 @@ class FidoTest(GeoMOOSETest):
 		Basic Fido test, ensures demo data is returned.
 		"""
 		results = self.get(self.fido_php)
+
+		n_results = len(results.json)
+
+		known_total = 854 + 87
+
+		self.assertEqual(known_total, n_results, "Results do not match! %d != %d" % (n_results, known_total))
+
