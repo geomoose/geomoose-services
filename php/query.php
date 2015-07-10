@@ -518,8 +518,9 @@ if($mode == 'search') {
 	# or zoom to the first result if requested.
 	if(($totalResults == 1 and $firstResult != false) or ($totalResults >= 1 and $zoomToFirst == true)) {
 		$bounds = $resultFeatures[0]->bounds;
-		$bounds->project($LATLONG_PROJ, $projection);
-		printf('GeoMOOSE.zoomToExtent(%f,%f,%f,%f);', $bounds->minx, $bounds->miny, $bounds->maxx, $bounds->maxy);
+		#$outputProjection = ms_newprojectionobj('epsg:4326');
+		#$bounds->project($LATLONG_PROJ, $outputProjection);
+		printf('GeoMOOSE.zoomToExtent(%f,%f,%f,%f, "EPSG:4326");', $bounds->minx, $bounds->miny, $bounds->maxx, $bounds->maxy);
 	}
 	print "]]></script>";
 	print "<html><![CDATA[";

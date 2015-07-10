@@ -7,6 +7,8 @@ from . import GeoMOOSETest
 
 from select_php_test import ParcelTest 
 
+import re
+
 class QueryTest(ParcelTest):
 	def setUp(self):
 		super(QueryTest,self).setUp()
@@ -202,6 +204,53 @@ class QueryTest(ParcelTest):
 		regex = 'mapObj..queryByRect'
 		r = self.check_parcels(like_any_test, [], regex)
 
+	def test_bad_zoom_coordinates(self):
+		"""
+		Check that zoom coordinates are valid from searches. (Ticket #90)
+		"""
+
+		# this test does not check for parcel validity, 
+		#  it needs to parse zoom coordinates, so it does not use
+		#  "check_parcels", hence a manually setup test.
+		query_php = "http://" + self.host + self.geomoose_base + "/php/query.php"
+
+		params = {
+			'highlight' : 'true',
+			'mode' : 'search',
+			'layer0' : 'parcels/parcels',
+			'template0' : 'itemquery',
+			'fieldname0' : 'PIN',
+			'comparitor0' : 'like-icase',
+			'value0' : '130220003076',
+			'fieldname1' : 'FIN_SQ_FT',
+			'operator1' : 'or',
+			'comparitor1' : 'gt',
+			'value1' : ''
+		}
 
 
+		req = self.post(query_php, params=params) 
+
+		#GeoMOOSE.zoomToExtent(483512.041622,4935870.833973,483612.169900,4936007.072803)
+		self.assertEqual(req.status_code, 200, "Zoom test returned invalid status code")
+		pattern = r".*GeoMOOSE\.zoomToExtent\((?P<minx>[\-0-9\.]+),(?P<miny>[\-0-9\.]+),(?P<maxx>[\-0-9\.]+),(?P<maxy>[\-0-9\.]+), .EPSG.(?P<proj>[0-9]+).\).*"
+
+		zoom_match = re.match(pattern, req.text.replace('\n', ' '))
+
+		self.assertIsNotNone(zoom_match, "Could not find zoomToExtent string in search results.")
+
+		coordinates = zoom_match.groupdict()
+		correct = {
+			'minx': u'-93.207671', 'miny': u'44.575991', 
+			'maxx': u'-93.206415', 'maxy': u'44.577215', 
+			'proj': u'4326'
+		}
+
+		# verify the results actually pass.
+		for coord in correct:
+			self.assertEqual(coordinates[coord], correct[coord],
+				"Error in coordinates! %s does not match! (%s != %s)" % (coord, coordinates[coord], correct[coord]))
+
+
+	
 
