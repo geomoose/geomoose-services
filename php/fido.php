@@ -66,14 +66,6 @@ for($map_source_i = 0; $map_source_i < $msXML->length; $map_source_i++) {
 			$layer->set('template', '');
 		}
 
-		$map->setProjection("init=epsg:4326");
-
-		# since the map's projection is WGS84,
-		#  it is easy to query the whole-wide-world.
-		$world = ms_newRectObj();
-		$world->setExtent(-180, -90, 180, 90);
-
-
 		# iterate through each layer and run the template process.
 		for($ml = 0; $ml < $map->numlayers; $ml++) {
 			# get the layer from the map.
@@ -87,7 +79,8 @@ for($map_source_i = 0; $map_source_i < $msXML->length; $map_source_i++) {
 				$layer->set('template', $fido_record);
 
 				# query the map
-				$map->queryByRect($world);
+				$ext = $layer->getExtent();
+				$map->queryByRect($ext);
 
 				# get the resutls
 				$map_results = $map->processquerytemplate(array(), MS_FALSE);
