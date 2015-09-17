@@ -212,7 +212,7 @@ function renderImage($mapbook, $layers_json,  $mapImageWidth, $mapImageHeight, $
 	for($i = 0; $i < sizeof($layers_json); $i++) {
 		$layer = $layers_json[$i];
 		$image = null;
-		$opacity = $layers_json[$i]["opacity"]*100;
+		$opacity = 100.0;
 
 		if($layer["type"] == 'wms') {
 			#echo "<br>WMS LAyer";
