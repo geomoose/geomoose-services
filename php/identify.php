@@ -89,7 +89,7 @@ for($i = 0; $i < $msXML->length; $i++) {
 						$params = $params . '&' . $p->getAttribute('name') . '=' . $p->getAttribute('value');
 					}
 				}
-				array_push($layersToIdentify, $msType.':'.$layer->getAttribute('name').':'.$node->getElementsByTagName($nodeName)->item(0)->nodeValue.$params);
+				array_push($layersToIdentify, $msType.':'.$layer->getAttribute('name').':'.rawurlencode($node->getElementsByTagName($nodeName)->item(0)->nodeValue)); #.$params);
 
 			}
 		}
@@ -124,7 +124,7 @@ $wmsFooterTemplate = implode('', file($CONFIGURATION['wms_footer']));
 foreach($layersToIdentify as $mf) {
 	$info = explode(':', $mf);
 	if($info[0] == 'mapserver') {
-		$path = $info[2];
+		$path = rawurldecode($info[2]);
 		if(substr($path,0,1) == '.') {
 			$path = $CONFIGURATION['root'].$path;
 		}
@@ -180,7 +180,7 @@ foreach($layersToIdentify as $mf) {
 		$results = $map->processquerytemplate(array(), false);
 		$content = $content . $results;
 	} else if($info[0] == 'wms') {
-		$wmsUrl = $info[2].'&SERVICE=WMS&VERSION=1.1.0&REQUEST=GetFeatureInfo&WIDTH=100&HEIGHT=100&X=50&Y=50&EXCEPTIONS=application/vnd.ogc.se_xml&LAYERS='.$info[1].'&QUERY_LAYERS='.$info[1].'&BBOX='.$wmsBBOX.'&SRS='.$projection.'&STYLES=&INFO_FORMAT=application/vnd.ogc.gml';
+		$wmsUrl = rawurldecode($info[2]).'&SERVICE=WMS&VERSION=1.1.0&REQUEST=GetFeatureInfo&WIDTH=100&HEIGHT=100&X=50&Y=50&EXCEPTIONS=application/vnd.ogc.se_xml&LAYERS='.$info[1].'&QUERY_LAYERS='.$info[1].'&BBOX='.$wmsBBOX.'&SRS='.$projection.'&STYLES=&INFO_FORMAT=application/vnd.ogc.gml';
 		#print '<a href="'.$wmsUrl.'"> WMS Link</a><br/>';
 
 		# Resolve the url if relative
