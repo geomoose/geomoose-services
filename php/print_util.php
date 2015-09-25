@@ -217,6 +217,7 @@ function renderImage($mapbook, $layers_json,  $mapImageWidth, $mapImageHeight, $
 		if($layer["type"] == 'wms') {
 			#echo "<br>WMS LAyer";
 			$image = getWMSImage($layer, $mapImageWidth, $mapImageHeight, $extent, $debug);
+			$opacity = $layers_json[$i]["opacity"]*100;
 		} elseif($layer["type"] == 'vector') {
 			#echo "<br>VEctor Layer";
 			$image = renderVector($layer, $mapImageWidth, $mapImageHeight, $extent);
