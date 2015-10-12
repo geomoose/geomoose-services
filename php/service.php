@@ -206,6 +206,8 @@ class Service {
 	protected $queryLayers = array();
 	protected $queryTemplates = array();
 
+	protected $queryShapes = array();
+
 	protected $templateResults = '';
 	protected $resultFeatures = array();
 	protected $resultCount = 0;
@@ -213,6 +215,8 @@ class Service {
 	protected $mode = '';
 
 	protected $mapbook;
+
+	private $latlon_proj;
 
 	# TODO: Throw this farther down in the class.
 
@@ -226,6 +230,7 @@ class Service {
 		$this->conf = $config;
 
 		$this->DEBUG = true;
+		$this->latlon_proj= ms_newprojectionobj('epsg:4326');
 
 		# string specific operations
 		# mapserver doesn't quite honor this the way I'd like it to but at the very least,
@@ -264,6 +269,7 @@ class Service {
 		$ops['nor'] = new Operator('OR (NOT (%s))', 'or not (%s)');
 
 		$this->operators = $ops;
+
 	}
 
 	public function parseQuery() {
@@ -276,6 +282,12 @@ class Service {
 		}
 		$highlightResults = parseBoolean(get_request_icase('highlight'));
 		$zoomToFirst = parseBoolean(get_request_icase('zoom_to_first'));
+
+		# get the projection from the client
+		$projection = $this->conf['projection'];
+		if(isset_icase('projection')) {
+			$projection = get_request_icase('projection');
+		}
 
 		# layers to search
 		$this->queryLayers= array();
@@ -332,6 +344,12 @@ class Service {
 					$blank_okay = false;
 				}
 
+				if(isset_icase('shape'.$i)) {
+					#TODO: Add shapes from layer and buffer operations.
+					$shp = reprojectWkt(get_request_icase('shape'.$i), ms_newprojectionobj($projection), $this->latlon_proj);
+					$this->queryShapes[] = ms_shapeObjFromWkt($shp);
+				}
+
 
 				# if a value is not set for subsequent inputs, use the first input
 				# this allows queries to permeate across multiple layers
@@ -363,8 +381,6 @@ class Service {
 		$SQL_LAYER_TYPES = array(MS_POSTGIS, MS_ORACLESPATIAL);
 		$NOT_SUPPORTED = array(MS_INLINE, MS_WMS, MS_WFS, MS_GRATICULE, MS_RASTER, MS_PLUGIN, MS_OGR);
 
-		$LATLONG_PROJ = ms_newprojectionobj('epsg:4326');
-
 		# parse the mapsources from the mapbook		
 		$map_sources = $this->mapbook->getElementsByTagName('map-source');
 		#TODO: This loops is not as efficient as it could be, realistiically,
@@ -384,7 +400,17 @@ class Service {
 						if(substr($file,0,1) == '.') {
 							$file = $this->conf['root'].$file;
 						}
+
+						# open the map
 						$map = ms_newMapObj($file);
+
+						# get it's projection.
+						$map_proj = $map->getProjection();
+						# turn it into a real projection object if it's not null.
+						if($map_proj != NULL) {
+							$map_proj = ms_newprojectionobj($map_proj);
+						}
+
 
 						# Create an array of query layers
 						$queryLayers = array();
@@ -400,6 +426,12 @@ class Service {
 						# Iterate through the queryLayers...
 						foreach($queryLayers as $queryLayer) {
 							$ext = $queryLayer->getExtent();
+
+							$layer_projection = $map_proj;
+							if($queryLayer->getProjection() != NULL) {
+								$layer_projection = ms_newprojectionobj($queryLayer->getProjection());
+							}
+
 							if($this->DEBUG) {
 								error_log(implode(',', array($ext->minx,$ext->miny,$ext->maxx,$ext->maxy)));
 								error_log("<br/>extent'd.<br/>");
@@ -450,25 +482,25 @@ class Service {
 							if($this->DEBUG) { error_log('queryLayer opened'); }
 
 							#$queryLayer->whichShapes($ext); #queryLayer->getExtent());
-							$queryLayer->queryByRect($ext);
+							# Filter by either shape or by extent.
+							if($this->queryShapes[$la]) {
+								$qshape = ms_shapeObjFromWkt($this->queryShapes[$la]->toWkt());
+								$qshape->project($this->latlon_proj, $layer_projection);
+								$queryLayer->whichShapes($qshape->bounds);
+								$queryLayer->queryByShape($qshape);
+							} else {
+								$queryLayer->queryByRect($ext);
+							}
 							if($this->DEBUG) { error_log('queryLayer queried'); }
 
 
 							$numResults = 0;
 
-							$projection = $map->getProjection();
-							if($queryLayer->getProjection() != NULL) {
-								$projection = $queryLayer->getProjection();
-							}
-							if($projection != NULL) {
-								# reproject the query shape as available.
-								$projection = ms_newProjectionObj($projection);
-							}
-			
-							for($i = 0; $i < $queryLayer->getNumResults(); $i++) {	
-								$shape = $queryLayer->getShape($queryLayer->getResult($i));
+							#for($i = 0; $i < $queryLayer->getNumResults(); $i++) {	
+							while($shape = $queryLayer->nextShape()) {
+								#$shape = $queryLayer->getShape($queryLayer->getResult($i));
 								if($projection) {
-									$shape->project($projection, $LATLONG_PROJ);
+									$shape->project($layer_projection, $this->latlon_proj);
 								}
 								$this->withEachFeature($shape);
 								$this->resultFeatures[] = $shape;
@@ -483,7 +515,16 @@ class Service {
 
 							if($this->DEBUG) { error_log('qLayer finished'); }
 
-							$map->queryByRect($ext);
+							# requery the layer for the template.
+							if($this->queryShapes[$la]) {
+								$qshape = ms_shapeObjFromWkt($this->queryShapes[$la]->toWkt());
+								$qshape->project($this->latlon_proj, $layer_projection);
+								$queryLayer->whichShapes($qshape->bounds);
+								$queryLayer->queryByShape($qshape);
+							} else {
+								$queryLayer->queryByRect($ext);
+							}
+
 							$results = $map->processquerytemplate(array(), MS_FALSE);
 							#if($DEBUG) { error_log('Results from MS: '.$results); }
 							$this->templateResults = $this->templateResults . $results;
