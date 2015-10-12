@@ -16,7 +16,7 @@ class ParcelTest(GeoMOOSETest):
 	def setUp(self):
 		self.select_php = "http://" + self.host + self.geomoose_base + "/php/select.php"
 		self.default_params = {
-			"layers" : "blank:blank/blank:borders:borders/city_labels:borders/county_labels:borders/city_poly:borders/county_borders:parcels:parcels/parcels:highlight:highlight/highlight:sketch",
+			"layers" : "blank:blank/blank:borders:borders/city_poly:borders/county_borders:parcels:parcels/parcels:highlight:highlight/highlight:sketch",
 			"projection": "EPSG:3857",
 			"select_layer" : "parcels/parcels",
 			"query_layer" : "",
