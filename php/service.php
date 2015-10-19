@@ -344,10 +344,20 @@ class Service {
 					$blank_okay = false;
 				}
 
+				# Gather up all the information for any spatial filters.
 				if(isset_icase('shape'.$i)) {
-					#TODO: Add shapes from layer and buffer operations.
-					$shp = reprojectWkt(get_request_icase('shape'.$i), ms_newprojectionobj($projection), $this->latlon_proj);
-					$this->queryShapes[] = ms_shapeObjFromWkt($shp);
+					$shp = ms_shapeObjFromWkt(reprojectWkt(get_request_icase('shape'.$i), ms_newprojectionobj($projection), $this->latlon_proj));
+					$shp_buffer = get_request_icase('shape'.$i.'_buffer');
+					$select_layer = get_request_icase('shape'.$i.'_layer');
+					$select_layer_buffer = get_request_icase('shape'.$i.'_layer_buffer');
+
+					error_log('Request settings, shp_buffer: '.$shp_buffer.' select_layer: '.$select_layer.' select_layer_buffer: '.$select_layer_buffer);
+
+					$this->queryShapes[] = $this->getQueryShapes($shp, $shp_buffer, $select_layer, $select_layer_buffer);
+
+					error_log('Query shape: '.$this->queryShapes[0]->toWkt());
+
+					#$this->queryShapes[] = ms_shapeObjFromWkt($shp);
 				}
 
 
@@ -414,13 +424,12 @@ class Service {
 
 						# Create an array of query layers
 						$queryLayers = array();
-						if($layerName == 'all') {
-							for($ml = 0; $ml < $map->numlayers; $ml++) {
-								array_push($queryLayers, $map->getLayer($ml));
+						for($ml = 0; $ml < $map->numlayers; $ml++) {
+							$map_layer = $map->getLayer($ml);
+							if($layerName == 'all' or $map_layer->name == $layerName or $map_layer->group == $layerName) {
+								error_log('Adding layer '.$layerName);
+								array_push($queryLayers, $map_layer);
 							}
-						} else {
-							# Turn on the specific layer
-							array_push($queryLayers, $map->getLayerByName($layerName));
 						}
 
 						# Iterate through the queryLayers...
@@ -577,6 +586,105 @@ class Service {
 		$this->parseQuery();
 		$this->queryLayers();
 		$this->handleBuiltinMode();
+	}
+
+	## Composites a set of shapes from a layer and returns a single shape for querying.
+	#
+	#  @param $drawnShape MapServer shape object. The shape drawn by the user, in WGS84
+	#  @param $drawnShapeBuffer A buffer for the drawn shape in meters.
+	#  @param $selectLayer A layer from which to select shapes.
+	#  @param $selectShapeBuffer A buffer for the shapes from the selectLayer in meters.
+	#
+	# @returns A mapserver shape that is the union of all of the selected shapes.
+	#
+	public function getQueryShapes($drawnShape, $drawnShapeBuffer, $selectLayer, $selectShapeBuffer) {
+		# set very small default buffers
+		if(!isset($drawnShapeBuffer) or $drawnShapeBuffer == 0) {
+			$drawnShapeBuffer = 0.00001;
+		}
+		if(!isset($selectShapeBuffer) or $selectShapeBuffer == 0) {
+			$selectShapeBuffer = 0.00001;
+		}
+
+		# fetch a shape
+		$dshp = saneBuffer($drawnShape, NULL, $drawnShapeBuffer);
+
+		$found_shapes = array();
+
+		# iterate through the map sources + layers.
+		error_log('getQueryShapes: Select Layer: '.$selectLayer.' '.isset($selectLayer));
+		if(!isset($selectLayer) or $selectLayer == '') {
+			$found_shapes[] = $dshp;
+		} else {
+			$map_sources = $this->mapbook->getElementsByTagName('map-source');
+			foreach($map_sources as $map_source) {
+				$map_name = $map_source->getAttribute('name');
+				$layers = $map_source->getElementsByTagName('layer');
+				foreach($layers as $layer) {
+					$layer_name = $layer->getAttribute('name');
+					$path = $map_name . '/' . $layer_name;
+					if($path == $selectLayer) {
+						# open the map.
+						$file = $map_source->getElementsByTagName('file')->item(0)->nodeValue;
+						if(substr($file,0,1) == '.') {
+							$file = $this->conf['root'].$file;
+						}
+						$map = ms_newMapObj($file);
+						# Create an array of query layers
+						$queryLayers = array();
+						for($ml = 0; $ml < $map->numlayers; $ml++) {
+							$map_layer = $map->getLayer($ml);
+							if($layer_name == 'all' or $map_layer->name == $layer_name or $map_layer->group == $layer_name) {
+								array_push($queryLayers, $map_layer);
+							}
+						}
+
+						foreach($queryLayers as $qlayer) {
+							# get it's projection.
+							$proj = $map->getProjection();
+							# turn it into a real projection object if it's not null.
+							if($proj != NULL && isset($proj) && $proj != "") {
+								error_log("MAP PROJECTION *".$map_proj."*");
+								$proj = ms_newprojectionobj($proj);
+							}
+							if($qlayer->getProjection() != NULL) {
+								$proj = ms_newprojectionobj($qlayer->getProjection());
+							}
+							if(!isset($proj)) {
+								$proj = ms_newprojectionobj($this->conf['projection']);
+							}
+
+							# project the shape to the local coordinate system
+							$qshp = ms_shapeObjFromWkt($dshp->toWkt()); 
+							$qshp->project($this->latlon_proj, $proj);
+							
+							$qlayer->open();
+							$qlayer->whichShapes($qshp->bounds);
+							$qlayer->queryByShape($qshp);
+
+							while($foundShp = $qlayer->nextShape()) {
+								$r = ms_shapeObjFromWkt($foundShp->toWkt());
+								$r->project($proj, $this->latlon_proj);
+								$found_shapes[] = saneBuffer($r, NULL, $selectShapeBuffer);
+							}
+
+							$qlayer->close();
+
+						}
+
+					}
+				}
+			}
+		} # and of "if(isset...)"
+
+		# join all the shapes.
+		error_log('Found shapes: '.count($found_shapes));
+		$ret_shp = array_shift($found_shapes);
+		foreach($found_shapes as $fshp) {
+			$ret_shp = $ret_shp->union($fshp);
+		}
+		return $ret_shp;
+		
 	}
 
 }
