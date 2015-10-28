@@ -58,11 +58,11 @@ class QueryService extends Service {
 
 		$headerArray = file($this->conf['query_header']);
 		$footerArray = file($this->conf['query_footer']);
-		print implode('', $headerArray);
+		#print implode('', $headerArray);
 		# this is a bit of a flail but it prevents us from depending
 		# on UTF8 or LATIN1 as being predictable inputs-and-outputs.
 		print mb_convert_encoding($this->templateResults, $this->conf['output-encoding'], 'LATIN1,ASCII,JIS,UTF-8,EUC-JP,SJIS');
-		print implode('', $footerArray);
+		#print implode('', $footerArray);
 
 		print "]]></html>";
 		print "</results>";

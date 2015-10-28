@@ -17,6 +17,8 @@ class ParcelTest(GeoMOOSETest):
 		self.select_php = "http://" + self.host + self.geomoose_base + "/php/query2.php"
 		self.default_params = {
 			"mode" : "search",
+			"header0" : "select_header",
+			"footer0" : "select_footer",
 			"template0" : "select_record", 
 			"layer0" : "parcels/parcels",
 			"projection": "EPSG:3857",
@@ -194,4 +196,21 @@ class SelectTest(ParcelTest):
 			"shape0" : "POINT(-10375755.352418 5555107.2472463)"
 		}
 		self.check_parcels(test_params, ['130220003076'])
+
+
+	def test_header_and_footer(self):
+		"""
+		Test header0/footer0 support in query.php using select_header/footer
+		"""
+
+		test_params = copy(self.default_params)
+		test_params.update({
+			"shape0" : "POINT(-10373109.338156 5552992.5910145)",
+			"shape0_buffer" : "500",
+		})
+
+
+		res = self.post(self.select_php, params=test_params)
+		print >> sys.stderr, res.text
+
 

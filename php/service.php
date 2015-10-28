@@ -204,7 +204,11 @@ class Service {
 	protected $operators = array();
 	protected $predicates = array();
 	protected $queryLayers = array();
+
+	# set of arrays to track the various MapServer templates applied to the query
 	protected $queryTemplates = array();
+	protected $queryHeaderTemplates = array();
+	protected $queryFooterTemplates = array();
 
 	protected $queryShapes = array();
 
@@ -298,6 +302,17 @@ class Service {
 		$this->queryTemplates = array();
 		$this->queryTemplates[0] = get_request_icase('template0');
 
+
+		$this->queryHeaderTemplates = array();
+		$this->queryFooterTemplates = array();
+		if(isset_icase('header0')) {
+			$this->queryHeaderTemplates[0] = get_request_icase('header0');
+		}
+
+		if(isset_icase('footer0')) {
+			$this->queryFooterTemplates[0] = get_request_icase('footer0');
+		}
+
 		if($this->DEBUG) {
 			error_log("Got parameters.<br/>");
 		}
@@ -317,10 +332,25 @@ class Service {
 				if(isset_icase('template'.$i)) {
 					$template = get_request_icase('template'.$i);
 				}
+				$header_template = null;
+				if(isset_icase('header'.$i)) {
+					$header_template = get_request_icase('header'.$i);
+				} else if(isset($this->queryHeaderTemplates[0])) {
+					$header_template = $this->queryHeaderTemplates[0];
+				}
+
+				$footer_template = null;
+				if(isset_icase('footer'.$i)) {
+					$footer_template = get_request_icase('footer'.$i);
+				} else if(isset($this->queryFooterTemplates[0])) {
+					$footer_template = $this->queryFooterTemplates[0];
+				}
 
 				if(!in_array($layer, $this->queryLayers) and $i > 0) {
 					$this->queryLayers[] = $layer;
 					$this->queryTemplates[] = $template;
+					$this->queryHeaderTemplates[] = $header_template;
+					$this->queryFooterTemplates[] = $footer_template;
 				}
 				# check the opeartor
 				$operator = false; $comparitor = false;
@@ -469,12 +499,25 @@ class Service {
 
 							$queryLayer->set('status', MS_DEFAULT);
 
-							if($queryLayer->getMetadata('itemquery_header')) {
-								$queryLayer->set('header', $queryLayer->getMetadata('itemquery_header'));
+							if(isset($this->queryHeaderTemplates[$la])) {
+								$header_key = $this->queryHeaderTemplates[$la];
+								if($queryLayer->getMetadata($header_key)) {
+									$queryLayer->set('header', $queryLayer->getMetadata($header_key));
+								}
 							}
-							if($queryLayer->getMetadata('itemquery_footer')) {
-								$queryLayer->set('footer', $queryLayer->getMetadata('itemquery_footer'));
+							if(isset($this->queryFooterTemplates[$la])) {
+								$footer_key = $this->queryFooterTemplates[$la];
+								if($queryLayer->getMetadata($footer_key)) {
+									$queryLayer->set('footer', $queryLayer->getMetadata($footer_key));
+								}
 							}
+
+
+
+
+							#if($queryLayer->getMetadata('itemquery_footer')) {
+							#	$queryLayer->set('footer', $queryLayer->getMetadata('itemquery_footer'));
+							#}
 							# we no long need to delineate between handling of SQL and Shapefile type layers.
 							if($filter_string) {
 								# WARNING! This will clobber existing filters on a layer.  
