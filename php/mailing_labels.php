@@ -51,8 +51,9 @@ for($i = 1; $i <= $labelLines; $i++) {
 	array_push($lineTemplate, $CONFIGURATION['label_line_'.$i]);
 }
 
-# connect to the sqlite db
-$sqlite = new PDO('sqlite:'.$tempDirectory.'/'.$query_id.'.db');
+# new caching format uses JSON.
+$cache_filename = $tempDirectory.'/'.$query_id.'.json';
+$cache = json_decode(file_get_contents($cache_filename), true);
 
 # put the labels into a larger array
 $allAddresses = array();
@@ -60,12 +61,16 @@ $allAddresses = array();
 # this is added to support a more elaborate CSV format
 $csv_addresses = array();
 
-foreach ($sqlite->query('select * from features') as $rec) {
+error_log('cache filename '.$cache_filename);
+
+foreach($cache['results']['features'] as $feature) {
+	error_log('In cache: '.$feature);
 	$address = array();
 	for($line = 0; $line < $labelLines; $line++) {
 		$address[$line] = $lineTemplate[$line];
-		foreach($rec as $k=>$v) {
-			$address[$line] = str_replace('%'.$k.'%', trim($v), $address[$line]);
+		foreach($feature['properties'] as $k=>$v) {
+			$key = strtoupper($k);
+			$address[$line] = str_replace('%'.$key.'%', trim($v), $address[$line]);
 		}
 		$address[$line] = trim($address[$line]);
 	}
@@ -74,8 +79,9 @@ foreach ($sqlite->query('select * from features') as $rec) {
 
 	# build the virtual csv file
 	$current_address = $CONFIGURATION['csv_record'];
-	foreach($rec as $k=>$v) {
-		$current_address = str_replace('%'.$k.'%', trim($v), $current_address);
+	foreach($feature['properties'] as $k=>$v) {
+		$key = strtoupper($k);
+		$current_address = str_replace('%'.$key.'%', trim($v), $current_address);
 	}
 
 	$csv_addresses[] = $current_address;
