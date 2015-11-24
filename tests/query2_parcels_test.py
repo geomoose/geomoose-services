@@ -211,6 +211,22 @@ class SelectTest(ParcelTest):
 
 
 		res = self.post(self.select_php, params=test_params)
-		print >> sys.stderr, res.text
+
+
+	def test_caching(self):
+		"""
+		Test a parcel query with caching
+		"""
+
+		test_params = copy(self.default_params)
+		test_params['cache'] = 'true'
+		res = self.post(self.select_php, params=test_params)
+		#print >> sys.stderr, res.text
+
+		# geomoose cache id's start with 'gm_'
+		self.assertTrue('gm_' in res.text, 'Missing query contents!')
+
+
+
 
 

@@ -26,6 +26,7 @@ THE SOFTWARE.*/
 #
 
 include('config.php');
+include_once('geophp/geoPHP.inc');
 
 class Comparitor {
 	protected $p = array();
@@ -216,9 +217,13 @@ class Service {
 	protected $resultFeatures = array();
 	protected $resultCount = 0;
 
+	protected $substVars = array();
+
 	protected $mode = '';
 
 	protected $mapbook;
+
+	protected $writeToCache = false;
 
 	private $latlon_proj;
 
@@ -273,7 +278,6 @@ class Service {
 		$ops['nor'] = new Operator('OR (NOT (%s))', 'or not (%s)');
 
 		$this->operators = $ops;
-
 	}
 
 	public function parseQuery() {
@@ -296,6 +300,7 @@ class Service {
 		# layers to search
 		$this->queryLayers= array();
 		$this->queryLayers[0] = get_request_icase('layer0');
+		$this->substVars['layer0'] = $this->queryLayers[0];
 
 		# this will check to see which template format should be used
 		# query/itemquery/select/popup/etc.
@@ -317,6 +322,11 @@ class Service {
 			error_log("Got parameters.<br/>");
 		}
 
+		# when set, cache the results.
+		if(isset_icase('cache') and strtolower(get_request_icase('cache')) == 'true') {
+			$this->writeToCache = true;
+		}
+
 		# get set of predicates
 		# I've only allowed for 255 right now... people will have to deal with this
 		for($i = 0; $i < 255; $i++) {
@@ -326,6 +336,7 @@ class Service {
 				$layer = $this->queryLayers[0];
 				if(isset_icase('layer'.$i)) {
 					$layer = get_request_icase('layer'.$i);
+					$this->substVars['layer'.$i] = $layer;
 				}
 				
 				$template = $this->queryTemplates[0];
@@ -374,19 +385,27 @@ class Service {
 					$blank_okay = false;
 				}
 
+				$this->inputShapes = array();
+
 				# Gather up all the information for any spatial filters.
 				if(isset_icase('shape'.$i)) {
 					$shp = ms_shapeObjFromWkt(reprojectWkt(get_request_icase('shape'.$i), ms_newprojectionobj($projection), $this->latlon_proj));
+					$this->inputShapes[] = $shp;
+
 					$shp_buffer = get_request_icase('shape'.$i.'_buffer');
 					$select_layer = get_request_icase('shape'.$i.'_layer');
 					$select_layer_buffer = get_request_icase('shape'.$i.'_layer_buffer');
 
-					error_log('Request settings, shp_buffer: '.$shp_buffer.' select_layer: '.$select_layer.' select_layer_buffer: '.$select_layer_buffer);
+					$this->substVars['shape'.$i.'_wkt'] = $shp->toWKt();
+					$this->substVars['shape'.$i.'_buffer'] = $shp_buffer;
+					$this->substVars['shape'.$i.'_layer'] = $select_layer;
+
+
+					#error_log('Request settings, shp_buffer: '.$shp_buffer.' select_layer: '.$select_layer.' select_layer_buffer: '.$select_layer_buffer);
 
 					$this->queryShapes[] = $this->getQueryShapes($shp, $shp_buffer, $select_layer, $select_layer_buffer);
 
-					error_log('Query shape: '.$this->queryShapes[0]->toWkt());
-
+					#error_log('Query shape: '.$this->queryShapes[0]->toWkt());
 					#$this->queryShapes[] = ms_shapeObjFromWkt($shp);
 				}
 
@@ -396,7 +415,6 @@ class Service {
 				if(isset_icase('value'.$i)) {
 					$value = get_request_icase('value'.$i);
 					$p = new Predicate($layer, get_request_icase('fieldname'.$i), $value, $operator, $comparitor, $blank_okay);
-					# put the predicates on the internal stack
 					$this->predicates[] = $p;
 				}
 
@@ -587,8 +605,21 @@ class Service {
 			}
 
 		}
+
+		$this->substVars['RESULTS_COUNT'] = $this->resultCount;
 	}
 
+	## Substitute variables in from the query
+	#
+	public function substituteVariables($str) {
+		foreach($this->substVars as $k => $v) {
+			# ensure the keys are upper case.
+			$key = strtoupper($k);
+			# substitute it
+			$str = str_replace('['.$key.']', $v, $str);
+		}
+		return $str;
+	}
 
 	public function handleBuiltinMode() {
 		if($this->getResultCount() == 0) {
@@ -597,7 +628,9 @@ class Service {
 			#http_response_code(404);
 			$this->resultsMiss();
 		} else {
+			$validMode = true;
 			if($this->mode == '') {
+				$validMode = false;
 				http_response_code(400);
 				header('Content-type: text/html');
 				print '<html><body>Error! Unknown mode!</body></html>';
@@ -607,7 +640,7 @@ class Service {
 				$this->mapResults();
 			} elseif($this->mode == 'results' or $this->mode == 'raw') {
 				header("Content-type: text/plain");
-				print $service->templateResults;
+				print $this->substituteVariables($service->templateResults);
 			}
 		}
 	}
@@ -622,12 +655,82 @@ class Service {
 	public function resultsMiss() {
 	}
 
+	## Convert a list of MapServer features to GeoJSON
+	#
+	#  @param features  Array of msShapeObj
+	#  @param includeAttributes Boolean. When true, adds attribute information to the output.
+	#
+	# @returns GeoJSON array.
+	#
+	private function msToGeoJSON($features, $includeAttributes) {
+		$out = array();
+		$out['type'] = 'FeatureCollection';
+		$out['features'] = array();
+
+		foreach($features as $feature) {
+			# get the WKT to a normalized geoPHP object
+			$g = geoPHP::load($feature->toWKt(), 'wkt');
+			# convert that to a GeoJSON object and add it to the pile.
+			#   geoPHP returns json as a string, but since the code will
+			#   encode it later, it is decoded here.
+			$out_f = json_decode($g->out('json'), true);
+			if($includeAttributes) {
+				$out_f['properties'] = array();
+				foreach($feature->values as $key => $value) {
+					$out_f['properties'][$key] = $value; #feature->values[$key];
+				}
+			}
+			$out['features'][] = $out_f;
+		}
+
+		return $out;
+	}
+
+	## Return the JSON representation of the mapping objects
+	#  
+	#  The JSON is not completely GeoJSON conforming because GeoMOOSE
+	#  needs to have multiple data sets returned in a single object, so there
+	#  are three 'FeatureCollection's that are, in fact, more standard GeoJSON.
+	#
+	public function resultsAsJSON() {
+		$out = array();
+		$out['type'] = 'geomoose:results';
+
+		# TODO: Add more settings reflection.
+		$out['settings'] = array();
+
+		# add the original input shape
+		# $this->inputShapes
+		$out['input_shapes'] = $this->msToGeoJSON($this->inputShapes, false);
+
+		# add the actual query shapes.
+		$out['query_shapes'] = $this->msToGeoJSON($this->queryShapes, false);
+
+		# and finally the resulting features.
+		$out['results'] = $this->msToGeoJSON($this->resultFeatures, true);
+
+		return json_encode($out);
+	}
+
 
 	## Main function, parses the query, runs the query,
 	#  returns the results based on the mode that was set.
 	public function run() {
 		$this->parseQuery();
 		$this->queryLayers();
+
+		# If writeToCache is true, write out the contents to a temp file
+		if($this->writeToCache) {
+			$cache_id = uniqid('gm_');
+			$temp_directory = $this->conf['temp'];
+			$cache_filename = $temp_directory.'/'.$cache_id.'.json';
+
+			$f = fopen($cache_filename, 'w');
+			fwrite($f, $this->resultsAsJSON());
+			fclose($f);
+
+			$this->substVars['CACHE_ID'] = $cache_id;
+		}
 		$this->handleBuiltinMode();
 	}
 
@@ -655,7 +758,6 @@ class Service {
 		$found_shapes = array();
 
 		# iterate through the map sources + layers.
-		error_log('getQueryShapes: Select Layer: '.$selectLayer.' '.isset($selectLayer));
 		if(!isset($selectLayer) or $selectLayer == '') {
 			$found_shapes[] = $dshp;
 		} else {
@@ -721,7 +823,8 @@ class Service {
 		} # and of "if(isset...)"
 
 		# join all the shapes.
-		error_log('Found shapes: '.count($found_shapes));
+		# error_log('Found shapes: '.count($found_shapes));
+
 		$ret_shp = array_shift($found_shapes);
 		foreach($found_shapes as $fshp) {
 			$ret_shp = $ret_shp->union($fshp);
