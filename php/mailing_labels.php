@@ -19,7 +19,8 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.*/
 
-include('config.php');
+#include('config.php');
+include('service.php');
 
 require('fpdf/fpdf.php');
 
@@ -52,16 +53,14 @@ for($i = 1; $i <= $labelLines; $i++) {
 }
 
 # new caching format uses JSON.
-$cache_filename = $tempDirectory.'/'.$query_id.'.json';
-$cache = json_decode(file_get_contents($cache_filename), true);
+$cacheHelper = new CacheHelper($CONFIGURATION);
+$cache = json_decode($cacheHelper->read($query_id), true);
 
 # put the labels into a larger array
 $allAddresses = array();
 
 # this is added to support a more elaborate CSV format
 $csv_addresses = array();
-
-error_log('cache filename '.$cache_filename);
 
 foreach($cache['results']['features'] as $feature) {
 	error_log('In cache: '.$feature);
