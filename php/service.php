@@ -197,7 +197,71 @@ class Predicate {
 	}
 }
 
+# Custom Exception to make not-found a thing.
+class NotFoundException extends Exception {}
 
+class CacheHelper {
+	## Working ID for when the cache item was created.
+	private $config = null;
+	private $debug = false;
+
+	public function __construct($config, $debug=false) {
+		$this->config = $config;
+		$this->debug = $debug;
+	}
+
+	## Get a cache file name.
+	#  
+	#  @param $cacheID  The name for cacheId
+	#
+	# @returns The filename.
+	public function getCacheFilename($cacheId) {
+		$temp_directory = $this->conf['temp'];
+		$cache_filename = $temp_directory.'/'.$cacheId.'.cache';
+		return $cache_filename;
+	}
+
+	## Write contents to a file and get a cache ID
+	#
+	#  @param $data The data to write to cache
+	# 
+	#  @returns A cache ID.
+	public function write($data) {
+		$cache_id = uniqid('gm_');
+		$cache_filename = $this->getCacheFilename($cache_id);
+
+		$f = fopen($cache_filename, 'w');
+		fwrite($f, $data);
+		fclose($f);
+
+		return $cache_id;
+	}
+
+	## Using the cache ID, return the contents of a cache file.
+	#
+	#  @param $cacheId The cache ID
+	#
+	#  @returns The contents of the cached file.
+	public function read($cacheId) {
+		$filename = $this->getCacheFilename($cacheId);
+		# check for the filename, or raise an error
+		if(!file_exists($filename)) {
+			throw new NotFoundException(); 
+		}
+		return file_get_contents($filename);
+	}
+}
+
+## Helper function for creating a JSON http error and the associated
+#  HTTP status code.
+#
+function HttpError($errorCode, $errorMessage) {
+	http_response_code($errorCode);
+	$err = array();
+	$err['status'] = 'error';
+	$err['message'] = $errorMessage;
+	print json_encode($err);
+}
 
 
 class Service {
@@ -226,6 +290,7 @@ class Service {
 	protected $writeToCache = false;
 
 	private $latlon_proj;
+	private $cacheHelper;
 
 	# TODO: Throw this farther down in the class.
 
@@ -237,6 +302,7 @@ class Service {
 	public function __construct($mapbook, $config, $debug=false) {
 		$this->mapbook = $mapbook;
 		$this->conf = $config;
+		$this->cacheHelper = new CacheHelper($config, $debug);
 
 		$this->DEBUG = true;
 		$this->latlon_proj= ms_newprojectionobj('epsg:4326');
@@ -721,14 +787,7 @@ class Service {
 
 		# If writeToCache is true, write out the contents to a temp file
 		if($this->writeToCache) {
-			$cache_id = uniqid('gm_');
-			$temp_directory = $this->conf['temp'];
-			$cache_filename = $temp_directory.'/'.$cache_id.'.json';
-
-			$f = fopen($cache_filename, 'w');
-			fwrite($f, $this->resultsAsJSON());
-			fclose($f);
-
+			$cache_id = $this->cacheHelper->write($this->resultsAsJSON());
 			$this->substVars['CACHE_ID'] = $cache_id;
 		}
 		$this->handleBuiltinMode();
