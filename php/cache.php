@@ -23,7 +23,6 @@ THE SOFTWARE.*/
  *  This can be used to return the cache as a WMS or WFS.
  */
 
-include('config.php');
 include('service.php');
 
 ## Parent class/interface for all of the various cache renderers.
@@ -41,6 +40,7 @@ class RenderCache {
 	#  @param $cacheId The Cache ID from the request.
 	#  @param $debug  Whether to print debug messages from the error log, defaults to false.
 	public function __construct($config, $cacheId, $debug=false) {
+		$this->conf = $config;
 		$this->cacheHelper = new CacheHelper($config, $debug);
 		$this->cacheId = $cacheId;
 	}
@@ -52,8 +52,8 @@ class RenderCache {
 	public function run() {
 		try {
 			# contents are always JSON 
-			$this->cacheContents = json_decode($this->cacheHelper->read($this->cacheId));
-		} catch (NotFoundException) {
+			$this->cacheContents = json_decode($this->cacheHelper->read($this->cacheId), true);
+		} catch (NotFoundException $e) {
 			# throw an httperror
 			HttpError(404, "Cache item not found.");
 			# short circuit
@@ -81,14 +81,14 @@ class JsonCacheHandler extends RenderCache {
 	#
 	#  @param $subset The 'subset' of the cache to return enum (input_shapes, results, query_shapes)
 	#
-	public __construct($config, $cacheId, $subset, $debug=false) {
+	public function __construct($config, $cacheId, $subset, $debug=false) {
 		parent::__construct($config, $cacheId, $debug);
 		$this->subset = $subset;
 	}
 
-	public render() {
+	public function render() {
 		# let's kick out some AWESOME
-		header('Content-type: application/json; charset='.$CONFIGURATION['output-encoding']);
+		header('Content-type: application/json; charset='.$this->conf['output-encoding']);
 		print json_encode($this->cacheContents[$this->subset]);
 	}
 }

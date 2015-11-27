@@ -216,7 +216,7 @@ class CacheHelper {
 	#
 	# @returns The filename.
 	public function getCacheFilename($cacheId) {
-		$temp_directory = $this->conf['temp'];
+		$temp_directory = $this->config['temp'];
 		$cache_filename = $temp_directory.'/'.$cacheId.'.cache';
 		return $cache_filename;
 	}
@@ -541,7 +541,6 @@ class Service {
 						for($ml = 0; $ml < $map->numlayers; $ml++) {
 							$map_layer = $map->getLayer($ml);
 							if($layerName == 'all' or $map_layer->name == $layerName or $map_layer->group == $layerName) {
-								error_log('Adding layer '.$layerName);
 								array_push($queryLayers, $map_layer);
 							}
 						}
