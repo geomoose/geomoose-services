@@ -631,10 +631,10 @@ class Service {
 
 							$numResults = 0;
 
-							#for($i = 0; $i < $queryLayer->getNumResults(); $i++) {	
-							while($shape = $queryLayer->nextShape()) {
-								#$shape = $queryLayer->getShape($queryLayer->getResult($i));
-								if($projection) {
+							for($i = 0; $i < $queryLayer->getNumResults(); $i++) {	
+							#while($shape = $queryLayer->nextShape()) {
+								$shape = $queryLayer->getShape($queryLayer->getResult($i));
+								if($layer_projection) {
 									$shape->project($layer_projection, $this->latlon_proj);
 								}
 								$this->withEachFeature($shape);
@@ -734,11 +734,13 @@ class Service {
 
 		foreach($features as $feature) {
 			# get the WKT to a normalized geoPHP object
-			$g = geoPHP::load($feature->toWKt(), 'wkt');
+			$geom = geoPHP::load($feature->toWKt(), 'wkt');
 			# convert that to a GeoJSON object and add it to the pile.
 			#   geoPHP returns json as a string, but since the code will
 			#   encode it later, it is decoded here.
-			$out_f = json_decode($g->out('json'), true);
+			$out_f = array();
+			$out_f['type'] = 'Feature';
+			$out_f['geometry'] = json_decode($geom->out('json'), true);
 			if($includeAttributes) {
 				$out_f['properties'] = array();
 				foreach($feature->values as $key => $value) {
