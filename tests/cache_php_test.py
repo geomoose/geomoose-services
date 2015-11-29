@@ -46,9 +46,7 @@ class CacheTest(GeoMOOSETest):
 		"""
 		Get the Results as GeoJSON
 		"""
-		import sys ; print >> sys.stderr, self.cacheId
-
 		r = self.get(self.cache_php, params={'cache_id' : self.cacheId, 'mode' : 'results:geojson'})
 		self.assertEqual(r.status_code, 200)
-
-		import sys ; print >> sys.stderr, r.text
+		self.assertTrue('application/json' in r.headers['content-type'], "Failed to return json header!")
+		self.assertTrue('FeatureCollection' in r.text, "Failed to return something that looks like GeoJSON")
