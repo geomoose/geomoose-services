@@ -89,7 +89,11 @@ class JsonCacheHandler extends RenderCache {
 	public function render() {
 		# let's kick out some AWESOME
 		header('Content-type: application/json; charset='.$this->conf['output-encoding']);
-		print json_encode($this->cacheContents[$this->subset]);
+		if($this->subset == 'all') {
+			print json_encode($this->cacheContents);
+		} else {
+			print json_encode($this->cacheContents[$this->subset]);
+		}
 	}
 }
 
@@ -116,8 +120,11 @@ function main() {
 	}
 
 	$handler = null;
+	# return everything in the cache.
+	if($mode == 'results') {
+		$handler = new JsonCacheHandler($CONFIGURATION, $cache_id, 'all');
 	# get the GeoJSON item containing the results set
-	if($mode == 'results:geojson') {
+	} else if($mode == 'results:geojson') {
 		$handler = new JsonCacheHandler($CONFIGURATION, $cache_id, 'results');
 	}
 

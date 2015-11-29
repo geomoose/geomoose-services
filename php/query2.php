@@ -19,7 +19,12 @@ class QueryService extends Service {
 		$qlayers = implode(':', $this->queryLayers);
 		print "GeoMOOSE.turnLayerOn('$qlayers');\n";
 
-		if(true) { #$highlightResults) {
+		if($this->writeToCache) {
+			print $this->substituteVariables("GeoMOOSE.changeLayerUrl('vector_highlight', './php/cache.php?mode=results:geojson&cache_id=[CACHE_ID]');");
+			print "GeoMOOSE.turnLayerOn('vector_highlight');";
+			print "GeoMOOSE.refreshLayers('vector_highlight');";
+		} else {
+		#if(true) { #$highlightResults) {
 			print "GeoMOOSE.changeLayerUrl('highlight', './php/query.php');";
 			$partial_params = array();
 			foreach($_REQUEST as $p => $v) {
