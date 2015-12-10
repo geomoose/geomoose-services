@@ -40,7 +40,7 @@ MAP
 		GROUP 'highlight'
 		CONNECTIONTYPE OGR
 		CONNECTION '[SHAPEPATH]/[UNIQUEID].db' 
-		DATA 'features'
+		DATA 'select wkt_geometrey from features'
 
 		CLASS
 			STYLE
@@ -58,7 +58,7 @@ MAP
 		GROUP 'highlight'
 		CONNECTIONTYPE OGR
 		CONNECTION '[SHAPEPATH]/[UNIQUEID].db' 
-		DATA 'selection'
+		DATA 'select area, wkt_geometry from selection'
 
 		CLASSITEM AREA
 
