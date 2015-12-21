@@ -195,6 +195,27 @@ function getAgsImage($layer, $mapW, $mapH, $extent, $debug=false) {
 	return getImage(normalizeURL($url), $debug);
 }
 
+function getLegendImages($mapbook, $layers_json, $debug=false) {
+	global $CONFIGURATION;
+
+	$mapserverUrl = $CONFIGURATION['mapserver_url'];
+
+
+	$legend_images = [];
+	for($i = 0; $i < sizeof($layers_json); $i++) {
+		$legends = $layers_json[$i]['legends'];
+		if(isset($legends)) {
+			foreach($legends as $url) {
+				$normal_url = normalizeURL($url);
+				$legend_images[] = getImage($normal_url, $debug);
+				error_log($normal_url);
+			}
+		}
+	}
+	return $legend_images;
+
+}
+
 function renderImage($mapbook, $layers_json,  $mapImageWidth, $mapImageHeight, $extent, $debug=false) {
 	global $CONFIGURATION;
 

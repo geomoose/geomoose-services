@@ -1,5 +1,5 @@
 <?php
-/*Copyright (c) 2009, Dan "Ducky" Little & GeoMOOSE.org
+/*Copyright (c) 2009-2015, Dan "Ducky" Little & GeoMOOSE.org
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -53,6 +53,13 @@ $extent = explode(',', $_REQUEST['extent']);
 $units = $_REQUEST['units'];
 if(!isset($units)) {
 	$units = 'm';
+}
+
+$renderLegends = $_REQUEST['legends'];
+if(isset($renderLegends)) {
+	$renderLegends = parseBoolean($renderLegends);
+} else { 
+	$renderLegends = true;
 }
 
 $template_path = '../../conf/print/';
@@ -254,6 +261,49 @@ if($CONFIGURATION['print_pdf'] == 1) {
 		$pdf->Cell(0,.25,$printString);
 	}
 
+
+	if($renderLegends) {
+		# put the legends on a second page.
+		$pdf->addPage('P', $templateSize);
+		$pdf->SetFont('Helvetica', '', 36.0);
+		$pdf->SetXY(72.0, 72.0);
+		# TODO: Bad for internationalization.
+		$pdf->Cell(0, .25, "Legends");
+		$legend_images = getLegendImages($mapbook, $print_info);
+
+		$pdf_legend_i = 0;
+		$legend_x = 36;
+		$legend_y = 100;
+		$legend_w = 0;
+		foreach($legend_images as $legend_image) {
+			$legend_filename = $tempDir.$uniqueId.'_pdf_legend'.$pdf_legend_i.'.jpg';
+			# write the file out as a jpeg
+			imagejpeg($legend_image, $legend_filename);
+			# get the size of the legend for placement.
+			$legend_size = getimagesize($legend_filename);
+			# check that the legend image is valid.
+			if($legend_size[0] > 0 and $legend_size[1] > 0) {
+				# place the new legend
+				$pdf->Image($legend_filename, $legend_x, $legend_y, $legend_size[0], $legend_size[1]);
+			
+				# move the legend down the page.
+				$legend_y += $legend_size[1];
+
+				# track the widest legend image.
+				$legend_w = max($legend_size[0], $legend_w);
+
+				# when the legend's height rolls over, go back to the top,
+				#  and shift over to the right.
+				if($legend_y > 7*72 ) {
+					$legend_y = 100;
+					$legend_x += $legend_w + 10;
+					# the width is only needed on a column-by-column basis.
+					$legend_w = 0;
+				}
+			}
+			$pdf_legend_i += 1;
+		} # end legends loop
+	} # end render legends 
 
 	$pdf->Output($tempDir.$uniqueId.'.pdf');
 
