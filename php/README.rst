@@ -18,7 +18,7 @@ We have included two PHP libraries used for PDF printing operations:
 
 	It allows for the redistribution of this "Work" with the GeoMOOSE code base.
 
-And one library for used for Geo calculations:
+And one library used for Geo calculations:
 
 * GeoPHP - https://geophp.net/
 
