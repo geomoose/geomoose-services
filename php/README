@@ -12,3 +12,11 @@ FPDI - http://www.setasign.de/products/pdf-php-solutions/fpdi/
   http://www.apache.org/licenses/LICENSE-2.0
 
  It allows for the redistribution of this "Work" with the GeoMOOSE code base.
+
+And one library for used for Geo calculations:
+
+GeoPHP - https://geophp.net/
+ This library is open-source and dual-licensed under both the Modified BSD License and GPLv2. 
+ Either license may be used at your option.
+
+ We have optioned the Modified BSD license.
