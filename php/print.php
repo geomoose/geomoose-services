@@ -27,8 +27,9 @@ if(!$DEBUG) {
 include('config.php');
 include('print_util.php');
 
-require('fpdf/fpdf.php');
-require('fpdi/fpdi.php');
+#require('fpdf/fpdf.php');
+#require('fpdi/fpdi.php');
+require('print_geopdf.php');
 
 
 
@@ -182,7 +183,7 @@ if($CONFIGURATION['print_html'] == 1) {
 
 if($CONFIGURATION['print_pdf'] == 1) {
 	# Open the PDF Template
-	$pdf = new FPDI();
+	$pdf = new GeoFPDI();
 
 	# force everything to points.
 	$pdf->k = 1.0;
@@ -213,21 +214,23 @@ if($CONFIGURATION['print_pdf'] == 1) {
 	$pdf_extent = preserveScale($preserveScale, $imageW*$quality, $imageH*$quality, $extent, $quality, $units);
 
 	if($DEBUG) {
-		echo "Image W: ".$imageW."<br/>";
-		echo "Image H: ".$imageH."<br/>";
-		echo "Image X: ".$imageX."<br/>";
-		echo "Image Y: ".$imageY."<br/>";
-		echo "Quality: ".$quality."<br/>";
-		echo "Extent: ".implode(',',$extent)."<br/>";
-		echo "PDF Extent: ".implode(',',$pdf_extent)."<br/>";
+		error_log( "Image W: ".$imageW."<br/>");
+		error_log("Image H: ".$imageH."<br/>");
+		error_log("Image X: ".$imageX."<br/>");
+		error_log("Image Y: ".$imageY."<br/>");
+		error_log("Quality: ".$quality."<br/>");
+		error_log("Extent: ".implode(',',$extent)."<br/>");
+		error_log("PDF Extent: ".implode(',',$pdf_extent)."<br/>");
 
-		echo "<br/>";
-		echo "Ground W: ".($pdf_extent[2] - $pdf_extent[0])."<br/>";
-		echo "Ground H: ".($pdf_extent[3] - $pdf_extent[1])."<br/>";
+		error_log("<br/>");
+		error_log("Ground W: ".($pdf_extent[2] - $pdf_extent[0])."<br/>");
+		error_log("Ground H: ".($pdf_extent[3] - $pdf_extent[1])."<br/>");
 	}
 
+	$pdf->setMapCoordinates(array($imageX, $imageY, $imageX+$imageW, $imageY+$imageH), $pdf_extent);
 
-	imagejpeg(renderImage($mapbook, $print_info,  $imageW*$quality, $imageH*$quality, $pdf_extent), $tempDir.$uniqueId.'_pdf.jpg');
+
+	imagejpeg(renderImage($mapbook, $print_info,  $imageW*$quality, $imageH*$quality, $pdf_extent, $DEBUG), $tempDir.$uniqueId.'_pdf.jpg');
 	$pdf->Image($tempDir.$uniqueId.'_pdf.jpg', $imageX, $imageY, $imageW, $imageH);
 
 	# Render the text fields
@@ -261,8 +264,8 @@ if($CONFIGURATION['print_pdf'] == 1) {
 		$pdf->Cell(0,.25,$printString);
 	}
 
-
-	if($renderLegends) {
+ 
+	if($renderLegends && false) {
 		# put the legends on a second page.
 		$pdf->addPage('P', $templateSize);
 		$pdf->SetFont('Helvetica', '', 36.0);
@@ -304,6 +307,13 @@ if($CONFIGURATION['print_pdf'] == 1) {
 			$pdf_legend_i += 1;
 		} # end legends loop
 	} # end render legends 
+
+	$pdf->__enddoc = $pdf->_enddoc;
+
+	$pdf->_enddoc = function() {
+		error_log("This does, in fact, get called!");
+		$this->__enddoc();
+	};
 
 	$pdf->Output($tempDir.$uniqueId.'.pdf');
 

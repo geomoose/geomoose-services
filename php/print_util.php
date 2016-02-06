@@ -71,9 +71,9 @@ function normalizeURL($url) {
 	$mapserverUrl = $CONFIGURATION['mapserver_url'];
 
 	$server = 'http://'.$CONFIGURATION['server_name'];
-	if((int)$_SERVER['SERVER_PORT'] != 80) {
-		$server = $server . ':' . $_SERVER['SERVER_PORT'];
-	}
+#	if((int)$_SERVER['SERVER_PORT'] != 80) {
+#		$server = $server . ':' . $_SERVER['SERVER_PORT'];
+#	}
 
 	$path_components = explode('/', $_SERVER['SCRIPT_NAME']);
 	array_pop($path_components); # Remove script name
@@ -208,7 +208,6 @@ function getLegendImages($mapbook, $layers_json, $debug=false) {
 			foreach($legends as $url) {
 				$normal_url = normalizeURL($url);
 				$legend_images[] = getImage($normal_url, $debug);
-				error_log($normal_url);
 			}
 		}
 	}
@@ -438,5 +437,6 @@ function translateColor($color, $fixWhite=false) {
 function colorToHex($color_array) {
 	return sprintf("#%02x%02x%02x", $color_array[0], $color_array[1], $color_array[2]);
 }
+
 
 ?>
