@@ -24,85 +24,32 @@ require('fpdi/fpdi.php');
 
 
 class GeoFPDI extends FPDI {
-	function _putalbers() {
-		$this->_out('/Projection');
-		$this->_out('<<');
-
-		$this->_out('/Type /Projection');
-		$this->_out('/ProjectionType (AC)');
-		$this->_out("/StandardParallelOne (20.00000)");
-		$this->_out("/StandardParallelTwo (60.00000)");
-		$this->_out("/FalseNorthing (0.00000)");
-		$this->_out("/Datum (NAR)");
-		$this->_out("/OriginLatitude (40.00000)");
-		$this->_out("/CentralMeridian (-96.00000) /FalseEasting (0.00000) ");
-		$this->_out('>>');
-
-	}
-
-	function _putmercator() {
-		# from proj:
-		#  <3857> +proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext  +no_defs <>
-		$this->_out('/Projection');
-		$this->_out('<<');
-		$this->_out('/EPSG 3857 /Type /PROJCS /WKT (PROJCS["WGS_84_Pseudo_Mercator",GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137,298.257223563]],PRIMEM["Greenwich",0],UNIT["Degree",0.017453292519943295]],PROJECTION["Mercator"],PARAMETER["central_meridian",0],PARAMETER["false_easting",0],PARAMETER["false_northing",0],UNIT["Meter",1],PARAMETER["standard_parallel_1",0.0]])');
-
-#			$this->_out('/Type /Projection');
-#			$this->_out('/ProjectionType (MC)');
-#			$this->_out("/OriginLatitude (40.00000)");
-#			$this->_out("/CentralMeridian (0.00000) /FalseEasting (0.00000) ");
-#			$this->_out("/FalseNorthing (0.00000)");
-#			$this->_out("/ScaleFactor (1.000)");
-
-#			$this->_out("/Datum (WE)"); # wgs 84
-		$this->_out('>>');
-	}
-
-	function _putprojection() {
-		#$this->_putalbers();
-		$this->_putmercator();
-
-	}
-
-	function _putregistration() {
-		$this->_out('/Registration');
-		$this->_out('[[');
-		$this->_out('('.$this->pdf_ext[0].') ('.$this->pdf_ext[1].')');
-		$this->_out('('.$this->geo_ext[0].') ('.$this->geo_ext[1].')');
-		$this->_out(']');
-		$this->_out('[');
-		$this->_out('('.$this->pdf_ext[2].') ('.$this->pdf_ext[3].')');
-		$this->_out('('.$this->geo_ext[2].') ('.$this->geo_ext[3].')');
-		$this->_out(']]');
-	}
-
-	function _putneatline() {
-		$this->_out('/Neatline');
-		$this->_out('[');
-		$this->_out('('.$this->pdf_ext[0].') ('.$this->pdf_ext[1].')');
-		$this->_out('('.$this->pdf_ext[0].') ('.$this->pdf_ext[3].')');
-		$this->_out('('.$this->pdf_ext[2].') ('.$this->pdf_ext[3].')');
-		$this->_out('('.$this->pdf_ext[2].') ('.$this->pdf_ext[1].')');
-		$this->_out(']');
-	}
+	## Toggle as to whether the geo functions will be enabled.
+	private $enable_geo = false;
 
 	function setMapCoordinates($pdfExt, $geoExt) {
 		# both of these are assumed to be minx, miny, maxx, maxy
 		$this->pdf_ext = $pdfExt; 
 		$this->geo_ext = $geoExt; 
+
+		$this->enable_geo = true;
 	}
 
-	function _gdalstyle() {
+	function _isostyle() {
 		$bbox = implode(" ", $this->pdf_ext);
 		$this->_newobj();
 		$this->_out("<< /BBox [ ".$bbox." ] /Measure ".($this->n+1)." 0 R /Name (Layer) /Type /Viewport >>");
 		$this->_out("endobj");
 
 		$minx = $this->geo_ext[0];
-		$miny = $this->geo_ext[1];
 		$maxx = $this->geo_ext[2];
+		$miny = $this->geo_ext[1];
 		$maxy = $this->geo_ext[3];
-		$bounds = implode(" ", array($maxx, $miny, $minx, $miny, $minx, $maxy, $maxx, $maxy));
+
+		#$bounds = implode(" ", array($maxx, $miny, $minx, $miny, $minx, $maxy, $maxx, $maxy));
+		$bounds = implode(" ", array($minx, $miny, $maxx, $miny, $maxx, $maxy, $minx, $maxy));
+		$bounds = implode(" ", array($miny, $minx, $maxy, $minx, $maxy, $maxx, $miny, $maxx));
+
 
 		$this->_newobj();
 		$this->_out("<< /Bounds [ 0 1 0 0 1 0 1 1 ] /GCS ".($this->n+1)." 0 R /GPTS [ ".$bounds." ] /LPTS [ 0 1 0 0 1 0 1 1 ] /Subtype /GEO /Type /Measure >>");
@@ -173,8 +120,8 @@ class GeoFPDI extends FPDI {
 				}
 				$this->_out($annots.']');
 			}
-			$this->_out('/Contents '.($this->n+1).' 0 R>>');
 			$this->_out('/VP ['.($this->n+2).' 0 R]');
+			$this->_out('/Contents '.($this->n+1).' 0 R>>');
 			$this->_out('endobj');
 			//Page content
 			$p=($this->compress) ? gzcompress($this->pages[$n]) : $this->pages[$n];
@@ -202,21 +149,10 @@ class GeoFPDI extends FPDI {
 	function _enddoc() {
 		$this->_putheader();
 		$this->_putpages();
-		# add ISO style GeoPDF commands.
-		$this->_gdalstyle();
+		# add ISO style Geospatial PDF commands.
+		$this->_isostyle();
 
 		$this->_putresources();
-		//GeoPDF
-	/*	$this->_newobj();
-		$this->_out('<<');
-		$this->_out('/Type /LGIDict');
-		$this->_out('/Version (2.1)');
-		$this->_putprojection();
-		$this->_out('/Description (User Generated Map)');
-		$this->_putregistration();
-		$this->_putneatline();
-		$this->_out('>>');
-		$this->_out('endobj');*/
 		//Info
 		$this->_newobj();
 		$this->_out('<<');

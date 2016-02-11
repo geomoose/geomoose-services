@@ -56,6 +56,13 @@ if(!isset($units)) {
 	$units = 'm';
 }
 
+$enable_geo = $_REQUEST['geo'];
+if(!isset($enable_geo)) {
+	$enable_geo = true;
+} else {
+	$enable_geo = parseBoolean($enable_geo);
+}
+
 $renderLegends = $_REQUEST['legends'];
 if(isset($renderLegends)) {
 	$renderLegends = parseBoolean($renderLegends);
@@ -227,7 +234,9 @@ if($CONFIGURATION['print_pdf'] == 1) {
 		error_log("Ground H: ".($pdf_extent[3] - $pdf_extent[1])."<br/>");
 	}
 
-	$pdf->setMapCoordinates(array($imageX, $imageY, $imageX+$imageW, $imageY+$imageH), $pdf_extent);
+	if($enable_geo) {
+		$pdf->setMapCoordinates(array($imageX, $imageY, $imageX+$imageW, $imageY+$imageH), $pdf_extent);
+	}
 
 
 	imagejpeg(renderImage($mapbook, $print_info,  $imageW*$quality, $imageH*$quality, $pdf_extent, $DEBUG), $tempDir.$uniqueId.'_pdf.jpg');
