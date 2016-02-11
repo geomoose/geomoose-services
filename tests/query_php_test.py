@@ -13,7 +13,7 @@ class QueryTest(ParcelTest):
 	def setUp(self):
 		super(QueryTest,self).setUp()
 		# now override with our parameters
-		self.select_php = "http://" + self.host + self.geomoose_base + "/php/query.php"
+		self.select_php = "http://" + self.host + self.geomoose_base + "/php/query2.php"
 		self.default_params = {
 			'comparitor0' : 'eq-str',
 			'fieldname0' : 'PIN',
@@ -253,4 +253,16 @@ class QueryTest(ParcelTest):
 
 
 	
+
+	def test_shape_filter(self):
+		"""
+		Test a geo comparitor
+		"""
+		expected_parcels = ['130270001077']
+		layer_test = {
+			"projection": "EPSG:3857",
+			'comparitor0' : 'geo',
+			"shape0" : "POINT(-10374958.869833 5552691.0678879)"
+		}
+		self.check_parcels(layer_test, expected_parcels)
 
