@@ -150,7 +150,9 @@ class GeoFPDI extends FPDI {
 		$this->_putheader();
 		$this->_putpages();
 		# add ISO style Geospatial PDF commands.
-		$this->_isostyle();
+		if($enable_geo) {
+			$this->_isostyle();
+		}
 
 		$this->_putresources();
 		//Info
