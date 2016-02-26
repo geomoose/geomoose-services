@@ -23,7 +23,7 @@ class FidoTest(GeoMOOSETest):
 		"""
 		results = self.get(self.fido_php)
 
-		n_results = len(results.json)
+		n_results = len(results.json())
 
 		known_total = 854 + 87
 

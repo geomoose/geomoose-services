@@ -9,7 +9,7 @@ class CacheTest(GeoMOOSETest):
 
 	def setUp(self):
 		# get a cache id from a select request.
-		self.select_php = "http://" + self.host + self.geomoose_base + "/php/query2.php"
+		self.select_php = "http://" + self.host + self.geomoose_base + "/php/query.php"
 		self.cache_php = "http://" + self.host + self.geomoose_base + "/php/cache.php"
 
 		self.select_params = {
@@ -46,6 +46,7 @@ class CacheTest(GeoMOOSETest):
 		"""
 		Get the Results as GeoJSON
 		"""
+
 		r = self.get(self.cache_php, params={'cache_id' : self.cacheId, 'mode' : 'results:geojson'})
 		self.assertEqual(r.status_code, 200)
 		self.assertTrue('application/json' in r.headers['content-type'], "Failed to return json header!")

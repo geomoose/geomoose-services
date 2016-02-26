@@ -13,7 +13,7 @@ class QueryTest(ParcelTest):
 	def setUp(self):
 		super(QueryTest,self).setUp()
 		# now override with our parameters
-		self.select_php = "http://" + self.host + self.geomoose_base + "/php/query2.php"
+		self.select_php = "http://" + self.host + self.geomoose_base + "/php/query.php"
 		self.default_params = {
 			'comparitor0' : 'eq-str',
 			'fieldname0' : 'PIN',
@@ -233,7 +233,7 @@ class QueryTest(ParcelTest):
 
 		#GeoMOOSE.zoomToExtent(483512.041622,4935870.833973,483612.169900,4936007.072803)
 		self.assertEqual(req.status_code, 200, "Zoom test returned invalid status code")
-		pattern = r".*GeoMOOSE\.zoomToExtent\((?P<minx>[\-0-9\.]+),(?P<miny>[\-0-9\.]+),(?P<maxx>[\-0-9\.]+),(?P<maxy>[\-0-9\.]+), .EPSG.(?P<proj>[0-9]+).\).*"
+		pattern = r".*GeoMOOSE\.zoomToExtent\((?P<minx>[\-0-9\.]+),(?P<miny>[\-0-9\.]+),(?P<maxx>[\-0-9\.]+),(?P<maxy>[\-0-9\.]+),\w*.EPSG.(?P<proj>[0-9]+).\).*"
 
 		zoom_match = re.match(pattern, req.text.replace('\n', ' '))
 
@@ -241,7 +241,7 @@ class QueryTest(ParcelTest):
 
 		coordinates = zoom_match.groupdict()
 		correct = {
-			'minx': u'-93.207671', 'miny': u'44.575991', 
+			'minx': u'-93.207672', 'miny': u'44.575991', 
 			'maxx': u'-93.206415', 'maxy': u'44.577215', 
 			'proj': u'4326'
 		}

@@ -14,7 +14,7 @@ from . import GeoMOOSETest
 
 class ParcelTest(GeoMOOSETest):
 	def setUp(self):
-		self.select_php = "http://" + self.host + self.geomoose_base + "/php/query2.php"
+		self.select_php = "http://" + self.host + self.geomoose_base + "/php/query.php"
 		self.default_params = {
 			"mode" : "search",
 			"header0" : "select_header",
