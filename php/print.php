@@ -274,7 +274,7 @@ if($CONFIGURATION['print_pdf'] == 1) {
 	}
 
  
-	if($renderLegends && false) {
+	if($renderLegends) {
 		# put the legends on a second page.
 		$pdf->addPage('P', $templateSize);
 		$pdf->SetFont('Helvetica', '', 36.0);
