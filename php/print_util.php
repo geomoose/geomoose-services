@@ -201,7 +201,7 @@ function getLegendImages($mapbook, $layers_json, $debug=false) {
 	$mapserverUrl = $CONFIGURATION['mapserver_url'];
 
 
-	$legend_images = [];
+	$legend_images = array();
 	for($i = 0; $i < sizeof($layers_json); $i++) {
 		$legends = $layers_json[$i]['legends'];
 		if(isset($legends)) {
