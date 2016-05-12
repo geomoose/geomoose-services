@@ -156,7 +156,9 @@ function getWMSImage($layer, $mapW, $mapH, $extent, $debug=false) {
 	$url = $url . '&HEIGHT='.$mapH;
 	$url = $url . '&BBOX='.implode(',', $extent);
 
-	if($layer['params']['LAYERS']) {
+	# this handle a php language quirk where in the string '0' 
+	#  evaluates to false.
+	if($layer['params']['LAYERS'] or $layer['params']['LAYERS'] == '0') {
 		# do nothing
 	} else {
 		$url = $url . '&LAYERS='.implode(',', $layer['layers']);
