@@ -106,7 +106,22 @@ function getWMSImage($layer, $mapW, $mapH, $extent, $debug=false) {
 		$url = $url.'?';
 	}
 
-	$url = $url . 'SERVICE=WMS&VERSION=1.1.1&REQUEST=GetMap&EXCEPTIONS=application%2Fvnd.ogc.se_inimage';
+	#$url = $url . 'SERVICE=WMS&VERSION=1.1.1&REQUEST=GetMap&EXCEPTIONS=application%2Fvnd.ogc.se_inimage';
+
+	$default_params = array(
+		'SERVICE' => 'WMS', 'VERSION' => '1.1.1',
+		'REQUEST' => 'GetMap', 'EXCEPTIONS' => 'application%2Fvnd.ogc.se_inimage'
+	);
+
+	foreach($default_params as $k=>$v) {
+		if($layer['params'][$k]) {
+			# do not do anything
+		} else {
+			# allow add the default value
+			$layer['params'][$k] = $v;
+		}
+	}
+
 
 	# See if we specify the format in the params...
 	if($layer['params']['format']) {
@@ -140,7 +155,12 @@ function getWMSImage($layer, $mapW, $mapH, $extent, $debug=false) {
 	$url = $url . '&WIDTH='.$mapW;
 	$url = $url . '&HEIGHT='.$mapH;
 	$url = $url . '&BBOX='.implode(',', $extent);
-	$url = $url . '&LAYERS='.implode(',', $layer['layers']);
+
+	if($layer['params']['LAYERS']) {
+		# do nothing
+	} else {
+		$url = $url . '&LAYERS='.implode(',', $layer['layers']);
+	}
 
 	# add the rest of the params to the URL:
 	foreach($layer['params'] as $k=>$v) {
