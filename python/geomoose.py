@@ -12,7 +12,7 @@ from flask import Flask, Response, request
 import geomoose
 
 # initialize the app global
-geomoose_app = Flask(__name__)
+geomoose_app = Flask(__name__, static_folder='../../js', static_url_path='/js')
 
 ## Return the mapbook
 #
