@@ -68,6 +68,9 @@ ENDOFJS;
       print "<b>Address Resolved To:</b> <br/> $resolvedaddress";
       print "]]>";
       print"</html>";
+      print "<footer><![CDATA[";
+      print "Geocodes provided by the Google Geocoder. <a target='_blank' href='https://developers.google.com/maps/documentation/geocoding/usage-limits'>See the Google terms of services.</a>";
+      print "]]></footer>";
       print "</results>";
 } else{
   header('Content-type: application/xml');
