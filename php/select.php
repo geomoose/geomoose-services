@@ -286,9 +286,8 @@ $sqlFilename = $tempDirectory.'/'.$uniqueId.'.db';
 try {
 	$sqlite = new PDO('sqlite:'.$sqlFilename);
 } catch(Exception $e) {
-	echo "Failed to connect!<Br/>";
-	echo $sqlFilename."<br/>";
-	echo $e->getMessage();
+	error_log("Failed to connect! to ".$sqlFilename);
+	error_log("error message: ".$e->getMessage());
 }
 
 # create the featuers table
