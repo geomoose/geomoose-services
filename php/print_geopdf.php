@@ -41,10 +41,15 @@ class GeoFPDI extends FPDI {
 		$this->_out("<< /BBox [ ".$bbox." ] /Measure ".($this->n+1)." 0 R /Name (Layer) /Type /Viewport >>");
 		$this->_out("endobj");
 
+		#$minx = $this->geo_ext[0];
+		#$maxx = $this->geo_ext[2];
+		#$miny = $this->geo_ext[1];
+		#$maxy = $this->geo_ext[3];
+
 		$minx = $this->geo_ext[0];
 		$maxx = $this->geo_ext[2];
-		$miny = $this->geo_ext[1];
-		$maxy = $this->geo_ext[3];
+		$maxy = $this->geo_ext[1];
+		$miny = $this->geo_ext[3];
 
 		#$bounds = implode(" ", array($maxx, $miny, $minx, $miny, $minx, $maxy, $maxx, $maxy));
 		$bounds = implode(" ", array($minx, $miny, $maxx, $miny, $maxx, $maxy, $minx, $maxy));
@@ -63,7 +68,6 @@ class GeoFPDI extends FPDI {
 		$this->_newobj();
 		$this->_out('<< /Name (User Generated Map) /Type /OCG >>');
 		$this->_out("endobj");
-
 	}
 
 	# overridden to provide the id of the new object.
@@ -150,7 +154,7 @@ class GeoFPDI extends FPDI {
 		$this->_putheader();
 		$this->_putpages();
 		# add ISO style Geospatial PDF commands.
-		if($enable_geo) {
+		if($this->enable_geo) {
 			$this->_isostyle();
 		}
 
