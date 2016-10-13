@@ -235,7 +235,9 @@ if($CONFIGURATION['print_pdf'] == 1) {
 	}
 
 	if($enable_geo) {
-		$pdf->setMapCoordinates(array($imageX, $imageY, $imageX+$imageW, $imageY+$imageH), $pdf_extent);
+		$bbox_y = $templateSize[1] - $imageH - $imageY;
+		$bbox_h = $bbox_y + $imageH;
+		$pdf->setMapCoordinates(array($imageX, $bbox_y, $imageX+$imageW, $bbox_h), $pdf_extent);
 	}
 
 
@@ -370,7 +372,7 @@ function preserveScale($scale_setting, $width, $height, $extent, $dpi_factor, $g
 			$normScale = 1.0 / floatval($scale_setting);
 		}
 		$scale = 1.0 / ($normScale * $inches_per_unit * $dpi);
-		$scale = $scale * (72.6/72.0); # magic number?
+		# $scale = $scale * (72.6/72.0); # magic number?
 
 	}
 	$scale = $scale * .5;
