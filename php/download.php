@@ -36,13 +36,13 @@ $ext = $_REQUEST['ext'];
 $as_download = $_REQUEST['download'];
 
 # test that ID is only letters, numbers, underscores, and dashes
-if(preg_match('[a-zA-Z_\-]+', $id) !== 1) {
+if(preg_match("/^[a-zA-Z0-9_\-]+$/", $id) !== 1) {
 	http_response_code(404);
-	echo "Not found."
+	echo "Not found";
 # ensure that the extension is only letters.
-} else if(preg_match('[a-zA-Z]+', $ext) !== 1) {
+} else if(preg_match("/^[a-zA-Z]+$/", $ext) !== 1) {
 	http_response_code(404);
-	echo "Not found."
+	echo "Not found (ext).";
 # validation has passed, return the file.
 } else {
 
