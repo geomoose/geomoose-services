@@ -24,8 +24,6 @@ THE SOFTWARE.*/
  * Serves a file from the temp with the proper mimetype based
  * on the id and extension.
  *
- * TODO: Add filter to "id" to prevent malicious requests.
- *
  */
 
 include('config.php');
