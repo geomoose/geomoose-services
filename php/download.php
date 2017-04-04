@@ -35,18 +35,30 @@ $id = $_REQUEST['id'];
 $ext = $_REQUEST['ext'];
 $as_download = $_REQUEST['download'];
 
-$mimetypes = array(
-	'pdf' => 'application/pdf',
-	'jpeg' => 'image/jpeg',
-	'png' => 'image/png',
-	'gif' => 'image/gif',
-	'html' => 'text/html',
-	'csv' => 'text/csv'
-);
+# test that ID is only letters, numbers, underscores, and dashes
+if(preg_match('[a-zA-Z_\-]+', $id) !== 1) {
+	http_response_code(404);
+	echo "Not found."
+# ensure that the extension is only letters.
+} else if(preg_match('[a-zA-Z]+', $ext) !== 1) {
+	http_response_code(404);
+	echo "Not found."
+# validation has passed, return the file.
+} else {
 
-header('Content-type: '.$mimetypes[$ext]);
-if($as_download == 'true') {
-	header('Content-Disposition: attachment; filename=download_'.getmypid().time().'.'.$ext);
+	$mimetypes = array(
+		'pdf' => 'application/pdf',
+		'jpeg' => 'image/jpeg',
+		'png' => 'image/png',
+		'gif' => 'image/gif',
+		'html' => 'text/html',
+		'csv' => 'text/csv'
+	);
+
+	header('Content-type: '.$mimetypes[$ext]);
+	if($as_download == 'true') {
+		header('Content-Disposition: attachment; filename=download_'.getmypid().time().'.'.$ext);
+	}
+	readfile($tempDir.$id.'.'.$ext);
 }
-readfile($tempDir.$id.'.'.$ext);
 ?>
