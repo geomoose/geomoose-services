@@ -1,5 +1,5 @@
 <?php
-/*Copyright (c) 2009, Dan "Ducky" Little & GeoMOOSE.org
+/*Copyright (c) 2009, 2017, Dan "Ducky" Little & GeoMOOSE.org
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -35,18 +35,30 @@ $id = $_REQUEST['id'];
 $ext = $_REQUEST['ext'];
 $as_download = $_REQUEST['download'];
 
-$mimetypes = array(
-	'pdf' => 'application/pdf',
-	'jpeg' => 'image/jpeg',
-	'png' => 'image/png',
-	'gif' => 'image/gif',
-	'html' => 'text/html',
-	'csv' => 'text/csv'
-);
+# test that ID is only letters, numbers, underscores, and dashes
+if(preg_match("/^[a-zA-Z0-9_\-]+$/", $id) !== 1) {
+	http_response_code(404);
+	echo "Not found";
+# ensure that the extension is only letters.
+} else if(preg_match("/^[a-zA-Z]+$/", $ext) !== 1) {
+	http_response_code(404);
+	echo "Not found (ext).";
+# validation has passed, return the file.
+} else {
 
-header('Content-type: '.$mimetypes[$ext]);
-if($as_download == 'true') {
-	header('Content-Disposition: attachment; filename=download_'.getmypid().time().'.'.$ext);
+	$mimetypes = array(
+		'pdf' => 'application/pdf',
+		'jpeg' => 'image/jpeg',
+		'png' => 'image/png',
+		'gif' => 'image/gif',
+		'html' => 'text/html',
+		'csv' => 'text/csv'
+	);
+
+	header('Content-type: '.$mimetypes[$ext]);
+	if($as_download == 'true') {
+		header('Content-Disposition: attachment; filename=download_'.getmypid().time().'.'.$ext);
+	}
+	readfile($tempDir.$id.'.'.$ext);
 }
-readfile($tempDir.$id.'.'.$ext);
 ?>
