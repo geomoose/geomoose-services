@@ -45,7 +45,7 @@ class QueryService extends Service {
 		# If there is only one results ... zoom to it!
 		# or zoom to the first result if requested.
 		if(($nResults == 1 and $firstResult != false) or ($nResults >= 1 and $zoomToFirst == true)) {
-			$bounds = $resultFeatures[0]->bounds;
+			$bounds = $this->resultFeatures[0]->bounds;
 			#$outputProjection = ms_newprojectionobj('epsg:4326');
 			#$bounds->project($LATLONG_PROJ, $outputProjection);
 			printf('GeoMOOSE.zoomToExtent(%f,%f,%f,%f, "EPSG:4326");', $bounds->minx, $bounds->miny, $bounds->maxx, $bounds->maxy);
@@ -88,15 +88,13 @@ class QueryService extends Service {
 
 		$poly_features = '';
 
-		error_log('N FEATURES: '.sizeof($resultFeatures));
-
-		for($i = 0; $i < sizeof($resultFeatures); $i++) {
-			if($resultFeatures[$i]->type == MS_SHAPE_POINT) {
-				$pointsLayer->addFeature($resultFeatures[$i]);
-			} elseif($resultFeatures[$i]->type == MS_SHAPE_POLYGON) {
-				$polygonsLayer->addFeature($resultFeatures[$i]);
-			} elseif($resultFeatures[$i]->type == MS_SHAPE_LINE) {
-				$linesLayer->addFeature($resultFeatures[$i]);
+		for($i = 0; $i < sizeof($this->resultFeatures); $i++) {
+			if($this->resultFeatures[$i]->type == MS_SHAPE_POINT) {
+				$pointsLayer->addFeature($this->resultFeatures[$i]);
+			} elseif($this->resultFeatures[$i]->type == MS_SHAPE_POLYGON) {
+				$polygonsLayer->addFeature($this->resultFeatures[$i]);
+			} elseif($this->resultFeatures[$i]->type == MS_SHAPE_LINE) {
+				$linesLayer->addFeature($this->resultFeatures[$i]);
 			}
 		}
 
