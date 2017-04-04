@@ -9,9 +9,9 @@ import os
 import os.path
 
 class GeoMOOSETest(unittest.TestCase):
-	host = "localhost"
-	geomoose_base = "/geomoose2"
-	mapserver_base = "/mapserver/cgi-bin/mapserv"
+	host = "localhost:8080"
+	geomoose_base = "/geomoose"
+	mapserver_base = "/cgi-bin/mapserv"
 	temp_dir = '/tmp/gm_tests/'
 
 	def setUp(self):

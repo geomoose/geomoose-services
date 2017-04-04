@@ -26,16 +26,34 @@ THE SOFTWARE.
  * Updated on 10/8/2014 by theduckylittle to the V3 API.
  */
 
+/*
+ * Updated 2 July 2016 by @theduckylittle to require
+ *  an API key that is set in local_settings.ini
+ *
+ */
+
+include('config.php');
+
 $address = $_REQUEST['address'];
 $request_url = "https://maps.googleapis.com/maps/api/geocode/xml?address=".urlencode($address);
 
-error_log('query url: '.$request_url);
+
+if($CONFIGURATION['google_api_key']) {
+	$request_url .= "&key=".$CONFIGURATION['google_api_key'];
+} else {
+	header('Content-type: application/xml; charset='.$CONFIGURATION['output-encoding']);
+	print "<results><html>";
+	print "<div class='error-message'>";
+	print "No Google API key has been defined. Please set <i>google_api_key</i> in local_settings.ini.";
+	print "</div>";
+	print "</html></results>";
+	exit;
+}
+
 
 $xml = simplexml_load_file($request_url) or die("url not loading");
 
 $status = $xml->status;
-
-error_log('GC Status '.$status);
 
 if (strcmp($status, "OK") == 0) {
       // Successful geocode
@@ -48,7 +66,7 @@ if (strcmp($status, "OK") == 0) {
       $lat = $coordinates->lat;
       $lng = $coordinates->lng;
 
- header('Content-type: application/xml');
+	header('Content-type: application/xml');
       print "<results>";
       print "<script>";
       print "<![CDATA[";
@@ -68,6 +86,9 @@ ENDOFJS;
       print "<b>Address Resolved To:</b> <br/> $resolvedaddress";
       print "]]>";
       print"</html>";
+      print "<footer><![CDATA[";
+      print "Geocodes provided by the Google Geocoder. <a target='_blank' href='https://developers.google.com/maps/terms'>See the Google terms of services.</a>";
+      print "]]></footer>";
       print "</results>";
 } else{
   header('Content-type: application/xml');
